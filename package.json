@@ -1,0 +1,21 @@
+{
+  "name": "autonai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "pnpm": "8.9.0",
+    "npm": "please use pnpm instead"
+  },
+  "packageManager": "pnpm@8.9.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.3.2",
+    "typescript-node": "^0.1.3"
+  }
+}
