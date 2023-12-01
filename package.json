@@ -9,7 +9,8 @@
   },
   "packageManager": "pnpm@8.9.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "frontend": "pnpm -F \"frontend\"",
+    "backend": "pnpm -F \"backend\""
   },
   "keywords": [],
   "author": "",

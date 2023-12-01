@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  backend:
+    build:
+      context: .
+      target: backend
+      dockerfile: Dockerfile.dev
+    image: autonai-backend:latest
+    ports:
+      - 8090:8090
+    volumes:
+      - .:/app
+  frontend:
+    build:
+      context: .
+      target: frontend
+      dockerfile: Dockerfile.dev
+    image: autonai-frontend:latest
+    ports:
+      - 5173:5173
+    volumes:
+      - .:/app
+    depends_on:
+      - backend
