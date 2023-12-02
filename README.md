@@ -15,3 +15,9 @@ https://api.novelai.net/docs/#/
 ### NextCloud NPM Packages Document
 
 https://docs.nextcloud.com/server/latest/developer_manual/digging_deeper/javascript-apis.html#npm-packages
+
+## Zod
+
+### Official Document
+
+https://zod.dev/

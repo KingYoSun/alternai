@@ -1,0 +1,76 @@
+// Reference: https://github.com/Aedial/novelai-api/blob/37f2250b3f1fe24aa7f3fcccee7277b45f57e6d5/novelai_api/ImagePreset.py#L450
+
+import {
+  AiGenerateImageParameters,
+  ImageSamplersEnum,
+} from "../types/NovelAiApi";
+
+import {
+  SMEA_DYN_COSTS,
+  SMEA_COSTS,
+  DDIM_COSTS,
+  NAI_COSTS,
+} from "./CostTables";
+
+export default function caluculateCost(
+  is_opus: boolean,
+  version: number,
+  params: AiGenerateImageParameters,
+): number {
+  const steps = params.steps;
+  const n_samples = params.n_samples;
+  const smea = params.sm;
+  const smea_dyn = params.sm_dyn;
+
+  const samplerList = [
+    ImageSamplersEnum.plms,
+    ImageSamplersEnum.ddim,
+    ImageSamplersEnum.k_euler,
+    ImageSamplersEnum.k_euler_ancestral,
+    ImageSamplersEnum.k_lms,
+  ];
+  const sampler = params.sampler;
+  let per_sample: number;
+
+  const uncond_scale = params.uncond_scale;
+  const strength = !!params.image ? params.strength || 1 : 1;
+
+  const resolution = [params.width, params.height];
+  let r = resolution[0] * resolution[1];
+  const index =
+    Math.ceil(params.width / 64) * Math.ceil(params.height / 64) - 1;
+  let costArr: number[] = [0, 0];
+
+  let smea_factor = 1.0;
+
+  if (r > 65536) r = 65536;
+
+  if (version == 3)
+    if (smea && smea_dyn) smea_factor = 1.4;
+    else if (smea && !smea_dyn) smea_factor = 1.2;
+    else if (r <= 1024 * 1024 && samplerList.some((obj) => obj === sampler))
+      per_sample =
+        ((15.266497014243718 *
+          Math.exp((r / 1024 / 1024) * 0.6326248927474729) -
+          15.225164493059737) *
+          steps) /
+        28;
+    else if (sampler === ImageSamplersEnum.nai_smea_dyn || (smea && smea_dyn))
+      costArr = SMEA_DYN_COSTS[index];
+    else if (sampler === ImageSamplersEnum.nai_smea || smea)
+      costArr = SMEA_COSTS[index];
+    else if (sampler === ImageSamplersEnum.ddim) costArr = DDIM_COSTS[index];
+    else costArr = NAI_COSTS[index];
+
+  per_sample = costArr[0] * steps + costArr[1];
+
+  if (version != 1 && uncond_scale != 1.0)
+    per_sample = Math.ceil(per_sample * uncond_scale);
+
+  const opus_discount_resolution = version == 1 ? 640 * 640 : 1024 * 1024;
+  const opus_discount_flag =
+    is_opus && steps <= 28 && r <= opus_discount_resolution;
+  const opus_discount = opus_discount_flag ? 1 : 0;
+
+  return per_sample * (n_samples - opus_discount);
+}
