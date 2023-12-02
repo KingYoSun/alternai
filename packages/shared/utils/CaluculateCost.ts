@@ -33,6 +33,7 @@ export default function caluculateCost(
   let per_sample: number;
 
   const uncond_scale = params.uncond_scale;
+
   const strength = !!params.image ? params.strength || 1 : 1;
 
   const resolution = [params.width, params.height];
@@ -45,10 +46,14 @@ export default function caluculateCost(
 
   if (r > 65536) r = 65536;
 
-  if (version == 3)
+  if (version == 3) {
     if (smea && smea_dyn) smea_factor = 1.4;
-    else if (smea && !smea_dyn) smea_factor = 1.2;
-    else if (r <= 1024 * 1024 && samplerList.some((obj) => obj === sampler))
+    if (smea && !smea_dyn) smea_factor = 1.2;
+    per_sample =
+      Math.ceil(2951823174884865e-21 * r + 5.753298233447344e-7 * r * steps) *
+      smea_factor;
+  } else {
+    if (r <= 1024 * 1024 && samplerList.some((obj) => obj === sampler))
       per_sample =
         ((15.266497014243718 *
           Math.exp((r / 1024 / 1024) * 0.6326248927474729) -
@@ -62,7 +67,10 @@ export default function caluculateCost(
     else if (sampler === ImageSamplersEnum.ddim) costArr = DDIM_COSTS[index];
     else costArr = NAI_COSTS[index];
 
-  per_sample = costArr[0] * steps + costArr[1];
+    per_sample = costArr[0] * steps + costArr[1];
+  }
+
+  per_sample = Math.max(Math.ceil(per_sample * strength), 2);
 
   if (version != 1 && uncond_scale != 1.0)
     per_sample = Math.ceil(per_sample * uncond_scale);
