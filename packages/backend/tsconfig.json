@@ -2,6 +2,7 @@
   "compilerOptions": {
     "esModuleInterop": true,
     "rootDir": ".",
-    "outDir": "./dist"
+    "outDir": "./dist",
+    "strictNullChecks": true
   }
 }

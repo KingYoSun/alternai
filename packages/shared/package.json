@@ -4,6 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "lint": "eslint . --ext ts,tsx & prettier .",
+    "lint:fix": "eslint --fix . --ext ts,tsx & prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

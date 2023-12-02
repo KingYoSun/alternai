@@ -7,6 +7,8 @@
     "dev": "nodemon index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
+    "lint": "eslint . --ext ts,tsx & prettier .",
+    "lint:fix": "eslint --fix . --ext ts,tsx & prettier --write .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
