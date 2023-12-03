@@ -6,6 +6,7 @@
   "scripts": {
     "lint": "eslint . --ext ts,tsx & prettier .",
     "lint:fix": "eslint --fix . --ext ts,tsx & prettier --write .",
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

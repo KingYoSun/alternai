@@ -117,28 +117,28 @@ function getMaxNSamples(w: number, h: number): number {
 export const AiGenerateImageParametersSchema = z
   .object({
     legacy: z.boolean(), // ??? default false
-    qualityTogggle: z.boolean(), // https://docs.novelai.net/image/qualitytags.html
+    qualityToggle: z.boolean(), // https://docs.novelai.net/image/qualitytags.html
     width: z.number().int(), // Width of Image Resolution
     height: z.number().int(), // Height of Image Resolution
     ucPreset: AiGenerateUCPresetSchema, // Default UC to prepend to the UC
     n_samples: z.number().int(), // Number of images to return
     seed: z.number().int().min(0).max(9999999999), // Random seed to use for the image. The ith image has seed + i for seed
     sampler: AiGenerateImageSamplerSchema, // https://docs.novelai.net/image/sampling.html
-    noise: z.number().min(0).max(0.99).nullable(), // https://docs.novelai.net/image/strengthnoise.html
-    strength: z.number().min(0.01).max(0.99).nullable(), // https://docs.novelai.net/image/strengthnoise.html
+    noise: z.number().min(0).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
+    strength: z.number().min(0.01).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
     scale: z.number().min(0).max(10), // https://docs.novelai.net/image/stepsguidance.html (scale is called Prompt Guidance)
     uncond_scale: z.number().min(0).max(1.5), // strength of negative prompt
     steps: z.number().int().min(1).max(50), // https://docs.novelai.net/image/stepsguidance.html
     negative_prompt: z.string().min(0).max(40000), // https://docs.novelai.net/image/undesiredcontent.html
     sm: z.boolean(), // Enable SMEA for any sampler (makes Large+ generations manageable)
     sm_dyn: z.boolean(), // Enable SMEA DYN for any sampler if SMEA is enabled (best for Large+, but not Wallpaper resolutions)
-    image: z.string().nullable(), // b64-encoded png image for img2img
-    controllnet_condition: z.string().nullable(), // Controlnet mask gotten by the generate_controlnet_mask method
-    controllnet_model: AiGenerateControlNetModelSchema.nullable(), // Model to use for the controlnet
-    controllnet_strength: z.number(), // Influence of the chosen controlnet on the image
+    image: z.string().optional(), // b64-encoded png image for img2img
+    controllnet_condition: z.string().optional(), // Controlnet mask gotten by the generate_controlnet_mask method
+    controllnet_model: AiGenerateControlNetModelSchema.optional(), // Model to use for the controlnet
+    controlnet_strength: z.number(), // Influence of the chosen controlnet on the image
     dynamic_thresholding: z.boolean(), // Reduce the deepfrying effects of high scale (https://twitter.com/Birchlabs/status/1582165379832348672)
     add_original_image: z.boolean(), // Prevent seams along the edges of the mask, but may change the image slightly
-    mask: z.string().nullable(), //  Mask for inpainting (b64-encoded black and white png image, white is the inpainting area)
+    mask: z.string().optional(), //  Mask for inpainting (b64-encoded black and white png image, white is the inpainting area)
     cfg_rescale: z.number().min(0).max(1), // https://docs.novelai.net/image/stepsguidance.html#prompt-guidance-rescale
     noise_schedule: z.enum([
       "native",
@@ -212,7 +212,7 @@ export const AiGenerateImageRequestSchema = z.object({
     .regex(
       /https:\/\/[0-9a-z\-\_]*\.tenant-novelai\.knative\.(chi\.coreweave\.com|[0-9a-z]+\.coreweave\.cloud)\/.*/,
     )
-    .nullable(),
+    .optional(),
 });
 
 export type AiGenerateImageRequest = z.infer<
