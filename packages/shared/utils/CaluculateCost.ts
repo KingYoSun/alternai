@@ -1,7 +1,7 @@
 // Reference: https://github.com/Aedial/novelai-api/blob/37f2250b3f1fe24aa7f3fcccee7277b45f57e6d5/novelai_api/ImagePreset.py#L450
 
 import {
-  AiGenerateImageParameters,
+  type AiGenerateImageParameters,
   ImageSamplersEnum,
 } from "../types/NovelAiApi";
 
@@ -34,7 +34,7 @@ export default function caluculateCost(
 
   const uncond_scale = params.uncond_scale;
 
-  const strength = !!params.image ? params.strength || 1 : 1;
+  const strength = params.image ? params.strength ?? 1 : 1;
 
   const resolution = [params.width, params.height];
   let r = resolution[0] * resolution[1];
@@ -46,7 +46,7 @@ export default function caluculateCost(
 
   if (r > 65536) r = 65536;
 
-  if (version == 3) {
+  if (version === 3) {
     if (smea && smea_dyn) smea_factor = 1.4;
     if (smea && !smea_dyn) smea_factor = 1.2;
     per_sample =
@@ -72,10 +72,10 @@ export default function caluculateCost(
 
   per_sample = Math.max(Math.ceil(per_sample * strength), 2);
 
-  if (version != 1 && uncond_scale != 1.0)
+  if (version !== 1 && uncond_scale !== 1.0)
     per_sample = Math.ceil(per_sample * uncond_scale);
 
-  const opus_discount_resolution = version == 1 ? 640 * 640 : 1024 * 1024;
+  const opus_discount_resolution = version === 1 ? 640 * 640 : 1024 * 1024;
   const opus_discount_flag =
     is_opus && steps <= 28 && r <= opus_discount_resolution;
   const opus_discount = opus_discount_flag ? 1 : 0;

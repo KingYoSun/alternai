@@ -1,24 +1,32 @@
-import express, { Request, Response, NextFunction } from "express";
+import express, {
+  type Request,
+  type Response,
+  type NextFunction,
+} from "express";
 import bodyParser from "body-parser";
 import AiGenerateImageRequest from "./api/AiGenerateImage";
-import { z, AnyZodObject } from "zod";
+import { z, type AnyZodObject } from "zod";
 import { NovelAiApi } from "shared";
 
-const dataSchema = (schema) =>
+const dataSchema = (schema): any =>
   z.object({
     body: schema,
   });
 
 const validate =
   (schema: AnyZodObject) =>
-  async (req: Request, res: Response, next: NextFunction) => {
+  async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | undefined> => {
     try {
       await schema.passthrough().parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
       });
-      return next();
+      next();
     } catch (e) {
       return res.status(400).send(e);
     }
@@ -40,10 +48,15 @@ app.post("/post-test", (req: Request, res: Response) => {
 
 app.post(
   "/generate-image",
-  validate(dataSchema(NovelAiApi.AiGenerateImageRequestSchema)),
-  async (req: Request, res: Response) => {
-    const body = await AiGenerateImageRequest(req.body);
-    res.status(body.status).send(body.message);
+  () => {
+    validate(dataSchema(NovelAiApi.AiGenerateImageRequestSchema));
+  },
+  (req: Request, res: Response): void => {
+    AiGenerateImageRequest(req.body)
+      .then((body) => res.status(body.status).send(body.message))
+      .catch((e) => {
+        throw e;
+      });
   },
 );
 

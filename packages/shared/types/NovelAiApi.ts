@@ -26,7 +26,7 @@ export const ImageResolutions = [
 export const AiGenerateImageResolutionsSchema = z
   .array(z.number())
   .length(2)
-  .refine((arr) => ImageResolutions.some((img) => img == arr));
+  .refine((arr) => ImageResolutions.some((img) => img === arr));
 
 export type AiGenerateImageResolutions = z.infer<
   typeof AiGenerateImageResolutionsSchema
@@ -55,7 +55,7 @@ const UCPresetsKeys: Array<keyof UCPresets> = Object.keys(
 ) as Array<keyof UCPresets>;
 const UCPresetsValues: number[] = UCPresetsKeys.map(
   (key) => UCPresetsEnum[key],
-) as number[];
+);
 
 export const AiGenerateUCPresetSchema = z
   .number()
@@ -150,7 +150,7 @@ export const AiGenerateImageParametersSchema = z
   .refine(
     (params) =>
       ImageResolutions.some(
-        (img) => img[0] == params.width && img[1] == params.height,
+        (img) => img[0] === params.width && img[1] === params.height,
       ),
     {
       path: ["width", "height"],
@@ -210,7 +210,7 @@ export const AiGenerateImageRequestSchema = z.object({
   url: z
     .string()
     .regex(
-      /https:\/\/[0-9a-z\-\_]*\.tenant-novelai\.knative\.(chi\.coreweave\.com|[0-9a-z]+\.coreweave\.cloud)\/.*/,
+      /https:\/\/[0-9a-z\-_]*\.tenant-novelai\.knative\.(chi\.coreweave\.com|[0-9a-z]+\.coreweave\.cloud)\/.*/,
     )
     .optional(),
 });
