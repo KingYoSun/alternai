@@ -1,36 +1,134 @@
 import { z } from "zod";
 
+export interface ImageResolution {
+  name: string;
+  width: number;
+  height: number;
+  excludes: string[];
+}
+
 export const ImageResolutions = [
-  [1088, 1920], // Wallpaper_Portrait
-  [1920, 1088], // Wallpaper_Landscape
-  [384, 640], // v1 Small_Portrait
-  [640, 384], // v1 Smalll_Landscape
-  [512, 512], // v1 Small_Square
-  [512, 768], // v1 Normal_Portrait
-  [768, 512], // v1 Normal_Landscape
-  [640, 640], // v1 Normal_Square
-  [512, 1024], // v1 Large_Portrait
-  [1024, 512], // v1 Large_Landscape
-  [1024, 1024], // v1 Large_Square
-  [512, 768], // v2 and v3 Small_Portrait
-  [768, 512], // v2 and v3 Smalll_Landscape
-  [640, 640], // v2 and v3 Small_Square
-  [832, 1216], // v2 and v3 Normal_Portrait
-  [1216, 832], // v2 and v3 Normal_Landscape
-  [1024, 1024], // v2 and v3 Normal_Square
-  [1024, 1536], // v2 and v3 Large_Portrait
-  [1536, 1024], // v2 and v3 Large_Landscape
-  [1472, 1472], // v2 and v3 Large_Square
+  {
+    name: "Wallpaper_Portrait",
+    width: 1088,
+    height: 1920,
+    excludes: [],
+  },
+  {
+    name: "Wallpaper_Landscape",
+    width: 1920,
+    height: 1088,
+    excludes: [],
+  },
+  {
+    name: "v1_Normal_Portrait",
+    width: 512,
+    height: 768,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Normal_Landscape",
+    width: 768,
+    height: 512,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Normal_Square",
+    width: 640,
+    height: 640,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large_Portrait",
+    width: 832,
+    height: 1216,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large_Landscape",
+    width: 1216,
+    height: 832,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large_Square",
+    width: 1024,
+    height: 1024,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large+_Portrait",
+    width: 1024,
+    height: 1536,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large+_Landscape",
+    width: 1536,
+    height: 1024,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v1_Large+_Square",
+    width: 1472,
+    height: 1472,
+    excludes: ["nai-diffusion-2", "nai-diffusion-3"],
+  },
+  {
+    name: "v2v3_Small_Portrait",
+    width: 512,
+    height: 768,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Smalll_Landscape",
+    width: 768,
+    height: 512,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Small_Square",
+    width: 640,
+    height: 640,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Normal_Portrait",
+    width: 832,
+    height: 1216,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Normal_Landscape",
+    width: 1216,
+    height: 832,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Normal_Square",
+    width: 1024,
+    height: 1024,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Large_Portrait",
+    width: 1024,
+    height: 1536,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Large_Landscape",
+    width: 1536,
+    height: 1024,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
+  {
+    name: "v2v3_Large_Square",
+    width: 1472,
+    height: 1472,
+    excludes: ["nai-diffusion", "safe-diffusion", "nai-diffusion-furry"],
+  },
 ];
-
-export const AiGenerateImageResolutionsSchema = z
-  .array(z.number())
-  .length(2)
-  .refine((arr) => ImageResolutions.some((img) => img === arr));
-
-export type AiGenerateImageResolutions = z.infer<
-  typeof AiGenerateImageResolutionsSchema
->;
 
 interface UCPresets {
   Preset_Low_Quality_Bad_Anatomy: number;
@@ -151,7 +249,7 @@ export const AiGenerateImageParametersSchema = z
   .refine(
     (params) =>
       ImageResolutions.some(
-        (img) => img[0] === params.width && img[1] === params.height,
+        (img) => img.width === params.width && img.height === params.height,
       ),
     {
       path: ["width", "height"],
@@ -170,11 +268,12 @@ export type AiGenerateImageParameters = z.infer<
   typeof AiGenerateImageParametersSchema
 >;
 
-export const DefaultAiGenerateImageParameters = {
+export const DefaultAiGenerateImageParameters: AiGenerateImageParameters = {
   legacy: false,
-  quality_toggle: true,
-  resolution: ImageResolutions[14],
-  uc_preset: UCPresetsEnum.Preset_Low_Quality_Bad_Anatomy,
+  qualityToggle: true,
+  width: ImageResolutions[14].width,
+  height: ImageResolutions[14].height,
+  ucPreset: UCPresetsEnum.Preset_Low_Quality_Bad_Anatomy,
   n_samples: 1,
   seed: 0,
   sampler: ImageSamplersEnum.k_euler,
@@ -182,31 +281,112 @@ export const DefaultAiGenerateImageParameters = {
   scale: 5,
   uncond_scale: 1,
   negative_prompt: "",
-  smea: false,
-  smea_dyn: false,
-  decrisper: false,
+  sm: false,
+  sm_dyn: false,
+  dynamic_thresholding: false,
   controlnet_strength: 1,
   add_original_image: false,
   cfg_rescale: 0,
   noise_schedule: "native",
 };
 
+export interface AiGenerateImageModel {
+  name: string;
+  label: string;
+  legacy: boolean;
+  inpainting: boolean;
+  default: boolean;
+}
+
+export const AiGenerateImageModels: AiGenerateImageModel[] = [
+  {
+    name: "nai-diffusion",
+    label: "NAI Diffusion Anime V1",
+    legacy: true,
+    inpainting: false,
+    default: true,
+  },
+  {
+    name: "safe-diffusion",
+    label: "Safe Diffusion Anime V1",
+    legacy: true,
+    inpainting: false,
+    default: true,
+  },
+  {
+    name: "nai-diffusion-furry",
+    label: "NAI Diffusion Furry",
+    legacy: true,
+    inpainting: false,
+    default: true,
+  },
+  {
+    name: "custom",
+    label: "Custom",
+    legacy: true,
+    inpainting: false,
+    default: false,
+  },
+  {
+    name: "nai-diffusion-inpainting",
+    label: "NAI Diffusion Anime Inpainting",
+    legacy: true,
+    inpainting: true,
+    default: true,
+  },
+  {
+    name: "nai-diffusion-3-inpainting",
+    label: "NAI Diffusion Anime V3 Inpainting",
+    legacy: false,
+    inpainting: true,
+    default: true,
+  },
+  {
+    name: "safe-diffusion-inpainting",
+    label: "Safe Diffusion Anime V1 Inpainting",
+    legacy: true,
+    inpainting: true,
+    default: true,
+  },
+  {
+    name: "furry-diffusion-inpainting",
+    label: "NAI Diffusion Furry Inpainting",
+    legacy: true,
+    inpainting: true,
+    default: true,
+  },
+  {
+    name: "kandinsky-vanilla",
+    label: "Kandinsky Vanilla",
+    legacy: true,
+    inpainting: false,
+    default: false,
+  },
+  {
+    name: "nai-diffusion-2",
+    label: "NAI Diffusion Anime V2",
+    legacy: true,
+    inpainting: false,
+    default: true,
+  },
+  {
+    name: "nai-diffusion-3",
+    label: "NAI Diffusion Anime V3",
+    legacy: false,
+    inpainting: false,
+    default: true,
+  },
+] as const;
+
+const models_enum: readonly [string, ...string[]] = [
+  AiGenerateImageModels[0].name,
+  ...AiGenerateImageModels.filter((_m, index) => index > 0).map((m) => m.name),
+];
+
 export const AiGenerateImageRequestSchema = z
   .object({
     input: z.string().min(1).max(40000),
-    model: z.enum([
-      "nai-diffusion",
-      "safe-diffusion",
-      "nai-diffusion-furry",
-      "custom",
-      "nai-diffusion-inpainting",
-      "nai-diffusion-3-inpainting",
-      "safe-diffusion-inpainting",
-      "furry-diffusion-inpainting",
-      "kandinsky-vanilla",
-      "nai-diffusion-2",
-      "nai-diffusion-3",
-    ]),
+    model: z.enum(models_enum),
     action: z.enum(["generate", "img2img", "infill"]),
     parameters: AiGenerateImageParametersSchema,
     url: z
@@ -229,3 +409,10 @@ export const AiGenerateImageRequestSchema = z
 export type AiGenerateImageRequest = z.infer<
   typeof AiGenerateImageRequestSchema
 >;
+
+export const DefaultAiGenerateImageOptions: AiGenerateImageRequest = {
+  input: "",
+  model: "nai-diffusion-3",
+  action: "generate",
+  parameters: DefaultAiGenerateImageParameters,
+};

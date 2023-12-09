@@ -8,14 +8,12 @@ function App() {
 
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-      <div className={cn("relative")}>
-        <div
-          className={cn("fixed top-0 left-0 right-0 w-screen h-full px-3 py-2")}
-        >
+      <div className={cn("relative max-w-screen-lg mx-auto")}>
+        <div className={cn("fixed inset-0 m-auto max-w-screen-lg h-full py-2")}>
           <CustomHeader currentPath={location.pathname} />
         </div>
 
-        <div className={cn("w-screen px-3 py-2 mt-16 md:mx-10 mx-2")}>
+        <div className={cn("flex justify-center w-full px-3 py-2 mt-16")}>
           <Outlet />
         </div>
         <div className={cn("h-screen my-10")} />

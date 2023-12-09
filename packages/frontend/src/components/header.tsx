@@ -22,14 +22,13 @@ import { cn } from "@/lib/utils";
 
 const RadixLink = (props: RadixLinkProps) => {
   return (
-    <Link to={props.href}>
-      <NavigationMenuLink
-        className={navigationMenuTriggerStyle()}
-        active={props.isActive}
-      >
-        {props.name}
-      </NavigationMenuLink>
-    </Link>
+    <NavigationMenuLink
+      asChild
+      className={navigationMenuTriggerStyle()}
+      active={props.isActive}
+    >
+      <Link to={props.href}>{props.name}</Link>
+    </NavigationMenuLink>
   );
 };
 
@@ -54,7 +53,7 @@ function CustomHeader({ currentPath }: HeaderProps) {
     <NavigationMenu>
       <NavigationMenuList>
         {links.map((link) => (
-          <NavigationMenuItem>
+          <NavigationMenuItem key={link.name}>
             <RadixLink
               name={link.name}
               href={link.href}
