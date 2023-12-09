@@ -1,0 +1,73 @@
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  navigationMenuTriggerStyle,
+  // NavigationMenuContent,
+  // NavigationMenuTrigger,
+  // NavigationMenuIndicator,
+  // NavigationMenuViewport,
+} from "@/components/ui/navigation-menu";
+
+import { Link } from "react-router-dom";
+interface RadixLinkProps {
+  name: string;
+  href: string;
+  isActive: boolean;
+}
+
+import { ThemeToggle } from "@/components/theme-toggle";
+import { cn } from "@/lib/utils";
+
+const RadixLink = (props: RadixLinkProps) => {
+  return (
+    <Link to={props.href}>
+      <NavigationMenuLink
+        className={navigationMenuTriggerStyle()}
+        active={props.isActive}
+      >
+        {props.name}
+      </NavigationMenuLink>
+    </Link>
+  );
+};
+
+export interface HeaderProps {
+  currentPath: string;
+}
+
+function CustomHeader({ currentPath }: HeaderProps) {
+  const links: Array<RadixLinkProps> = [
+    {
+      name: "Home",
+      href: "/",
+      isActive: currentPath === "/",
+    },
+    {
+      name: "Unko",
+      href: "/unko",
+      isActive: currentPath === "/unko",
+    },
+  ];
+  return (
+    <NavigationMenu>
+      <NavigationMenuList>
+        {links.map((link) => (
+          <NavigationMenuItem>
+            <RadixLink
+              name={link.name}
+              href={link.href}
+              isActive={link.isActive}
+            />
+          </NavigationMenuItem>
+        ))}
+      </NavigationMenuList>
+      <div className={cn("absolute right-7")}>
+        <ThemeToggle />
+      </div>
+    </NavigationMenu>
+  );
+}
+
+export default CustomHeader;
