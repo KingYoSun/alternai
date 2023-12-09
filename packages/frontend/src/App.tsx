@@ -9,7 +9,7 @@ function App() {
   return (
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <div className={cn("relative max-w-screen-lg mx-auto")}>
-        <div className={cn("fixed inset-0 m-auto max-w-screen-lg h-full py-2")}>
+        <div className={cn("fixed inset-0 mx-auto max-w-screen-lg h-fit py-2")}>
           <CustomHeader currentPath={location.pathname} />
         </div>
 
