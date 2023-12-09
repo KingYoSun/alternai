@@ -1,4 +1,4 @@
-import { type NovelAiApi } from "shared";
+import { NovelAiApi } from "shared";
 import AdmZip from "adm-zip";
 import { type ApiResponseBody } from "shared/types/Api";
 
@@ -8,6 +8,13 @@ const MAX_FILENAME_LEN = 50;
 export default async function AiGenerateImageRequest(
   options: NovelAiApi.AiGenerateImageRequest,
 ): Promise<ApiResponseBody> {
+  if (
+    options.parameters.sampler === NovelAiApi.ImageSamplersEnum.ddim &&
+    options.model === "nai-diffusion-3"
+  ) {
+    options.parameters.sampler = NovelAiApi.ImageSamplersEnum.ddim_v3;
+  }
+
   let res: ApiResponseBody;
   const endpoint = "/ai/generate-image";
   const apiRes = await fetch(`${API_HOST}${endpoint}`, {

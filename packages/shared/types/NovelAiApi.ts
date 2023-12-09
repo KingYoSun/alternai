@@ -71,6 +71,7 @@ export enum ImageSamplersEnum {
   k_heun = "k_heun",
   plms = "plms", // doesn't work
   ddim = "ddim",
+  ddim_v3 = "ddim_v3",
   nai_smea = "nai_smea", // doesn't work
   nai_smea_dyn = "nai_smea_dyn",
   k_dpmpp_2m = "k_dpmpp_2m",
@@ -180,7 +181,7 @@ export const DefaultAiGenerateImageParameters = {
   steps: 28,
   scale: 5,
   uncond_scale: 1,
-  uc: "",
+  negative_prompt: "",
   smea: false,
   smea_dyn: false,
   decrisper: false,
@@ -190,30 +191,40 @@ export const DefaultAiGenerateImageParameters = {
   noise_schedule: "native",
 };
 
-export const AiGenerateImageRequestSchema = z.object({
-  input: z.string().min(1).max(40000),
-  model: z.enum([
-    "nai-diffusion",
-    "safe-diffusion",
-    "nai-diffusion-furry",
-    "custom",
-    "nai-diffusion-inpainting",
-    "nai-diffusion-3-inpainting",
-    "safe-diffusion-inpainting",
-    "furry-diffusion-inpainting",
-    "kandinsky-vanilla",
-    "nai-diffusion-2",
-    "nai-diffusion-3",
-  ]),
-  action: z.enum(["generate", "img2img", "infill"]),
-  parameters: AiGenerateImageParametersSchema,
-  url: z
-    .string()
-    .regex(
-      /https:\/\/[0-9a-z\-_]*\.tenant-novelai\.knative\.(chi\.coreweave\.com|[0-9a-z]+\.coreweave\.cloud)\/.*/,
-    )
-    .optional(),
-});
+export const AiGenerateImageRequestSchema = z
+  .object({
+    input: z.string().min(1).max(40000),
+    model: z.enum([
+      "nai-diffusion",
+      "safe-diffusion",
+      "nai-diffusion-furry",
+      "custom",
+      "nai-diffusion-inpainting",
+      "nai-diffusion-3-inpainting",
+      "safe-diffusion-inpainting",
+      "furry-diffusion-inpainting",
+      "kandinsky-vanilla",
+      "nai-diffusion-2",
+      "nai-diffusion-3",
+    ]),
+    action: z.enum(["generate", "img2img", "infill"]),
+    parameters: AiGenerateImageParametersSchema,
+    url: z
+      .string()
+      .regex(
+        /https:\/\/[0-9a-z\-_]*\.tenant-novelai\.knative\.(chi\.coreweave\.com|[0-9a-z]+\.coreweave\.cloud)\/.*/,
+      )
+      .optional(),
+  })
+  .refine(
+    (params) =>
+      params.model !== "nai-diffusion-3" &&
+      params.parameters.sampler === ImageSamplersEnum.ddim_v3,
+    {
+      path: ["model", "params"],
+      message: "ddim_v3 only works with nai-diffusion-3",
+    },
+  );
 
 export type AiGenerateImageRequest = z.infer<
   typeof AiGenerateImageRequestSchema
