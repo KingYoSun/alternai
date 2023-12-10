@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -28,9 +28,11 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { CaluculateCost } from "shared";
 
 function Home() {
   const [res, setRes] = useState("");
+  const [cost, setCost] = useState("");
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -39,10 +41,12 @@ function Home() {
     );
   const [resoArr, setResoArr] =
     useState<NovelAiApi.ImageResolution[]>(initResoArr);
+
   const optionForm = useForm<NovelAiApi.AiGenerateImageRequest>({
     resolver: zodResolver(NovelAiApi.AiGenerateImageRequestSchema),
     defaultValues: NovelAiApi.DefaultAiGenerateImageOptions,
   });
+  const watcher = optionForm.watch(["model", "parameters"]);
 
   async function onSubmit(options: NovelAiApi.AiGenerateImageRequest) {
     const response = await fetch(`${process.env.BACKEND}/generate-image`, {
@@ -61,10 +65,23 @@ function Home() {
     return <span>{val}</span>;
   }
 
-  function WatchBoolean(name: string) {
+  function WatchValueRaw(name: string) {
     const val = useWatch({ name: name });
     return val;
   }
+
+  useEffect(() => {
+    const model = NovelAiApi.AiGenerateImageModels.find(
+      (el) => el.name === watcher[0],
+    );
+    if (!model) {
+      setCost("err");
+      return;
+    }
+    // TODO 計算見直し
+    const cost = CaluculateCost.default(true, model.version, watcher[1]);
+    setCost(String(cost));
+  }, [watcher]);
 
   return (
     <div className={cn("w-full z-11")}>
@@ -468,8 +485,107 @@ function Home() {
                           onCheckedChange={field.onChange}
                           checked={field.value}
                           ref={field.ref}
-                          disabled={!WatchBoolean("parameters.sm")}
+                          disabled={!WatchValueRaw("parameters.sm")}
                         />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <FormField
+                control={optionForm.control}
+                name="parameters.uncond_scale"
+                render={({ field }) => (
+                  <FormItem className={cn("mt-3")}>
+                    <FormLabel>
+                      Undesired Content Strength:{" "}
+                      {Math.floor(
+                        parseFloat(WatchValueRaw("parameters.uncond_scale")) *
+                          100,
+                      )}
+                      %
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        name={field.name}
+                        defaultValue={[
+                          NovelAiApi.DefaultAiGenerateImageParameters
+                            .uncond_scale,
+                        ]}
+                        onValueChange={(val) => field.onChange(val[0])}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        value={[field.value]}
+                        min={0}
+                        max={1.5}
+                        step={0.05}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={optionForm.control}
+                name="parameters.cfg_rescale"
+                render={({ field }) => (
+                  <FormItem className={cn("mt-3")}>
+                    <FormLabel>
+                      Prompt Guidamce Rescale:{" "}
+                      {WatchValue("parameters.cfg_rescale")}
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        name={field.name}
+                        defaultValue={[
+                          NovelAiApi.DefaultAiGenerateImageParameters
+                            .cfg_rescale,
+                        ]}
+                        onValueChange={(val) => field.onChange(val[0])}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        value={[field.value]}
+                        min={0}
+                        max={1}
+                        step={0.02}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div className={cn("mt-4")}>
+                <Label htmlFor="noise_schedule">Noise Schedule</Label>
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.noise_schedule"
+                  render={({ field }) => (
+                    <FormItem className={cn("max-w-[200px]")}>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={
+                            NovelAiApi.DefaultAiGenerateImageParameters
+                              .noise_schedule
+                          }
+                        >
+                          <SelectTrigger id="noise_schedule" className="w-200">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(NovelAiApi.NoiseScheduleEnum).map(
+                              (val) => (
+                                <SelectItem
+                                  key={NovelAiApi.NoiseScheduleEnum[val]}
+                                  value={val}
+                                >
+                                  {NovelAiApi.NoiseScheduleEnum[val]}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -479,7 +595,7 @@ function Home() {
             </div>
           </div>
           <Separator className={cn("mb-4")} />
-          <Button type="submit">Generate</Button>
+          <Button type="submit">Generate: {cost} Anlas</Button>
           <p className={cn("my-2")}>{res}</p>
         </form>
       </Form>

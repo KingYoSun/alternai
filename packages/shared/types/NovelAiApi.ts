@@ -181,12 +181,6 @@ export enum ImageSamplersEnum {
   k_dpm_fast = "k_dpm_fast",
 }
 
-export const AiGenerateImageSamplerSchema = z.nativeEnum(ImageSamplersEnum);
-
-export type AiGenerateImageSampler = z.infer<
-  typeof AiGenerateImageSamplerSchema
->;
-
 export enum ControlNetModelsEnum {
   Palette_Swap = "hed",
   Form_Lock = "midas",
@@ -194,13 +188,6 @@ export enum ControlNetModelsEnum {
   Building_Control = "mlsd",
   Landscaper = "uniformer",
 }
-
-export const AiGenerateControlNetModelSchema =
-  z.nativeEnum(ControlNetModelsEnum);
-
-export type AiGenerateControlNetModel = z.infer<
-  typeof AiGenerateControlNetModelSchema
->;
 
 function getMaxNSamples(w: number, h: number): number {
   const r = w * h;
@@ -210,6 +197,13 @@ function getMaxNSamples(w: number, h: number): number {
   if (r <= 1024 * 1536) return 2;
   if (r <= 1024 * 3072) return 1;
   return 0;
+}
+
+export enum NoiseScheduleEnum {
+  native = "native",
+  karras = "karras",
+  exponential = "exponential",
+  polyexponential = "polyexponential",
 }
 
 // Reference: https://github.com/Aedial/novelai-api/blob/main/novelai_api/ImagePreset.py#L140
@@ -222,7 +216,7 @@ export const AiGenerateImageParametersSchema = z
     ucPreset: AiGenerateUCPresetSchema, // Default UC to prepend to the UC
     n_samples: z.number().int(), // Number of images to return
     seed: z.number().int().min(0).max(9999999999), // Random seed to use for the image. The ith image has seed + i for seed
-    sampler: AiGenerateImageSamplerSchema, // https://docs.novelai.net/image/sampling.html
+    sampler: z.nativeEnum(ImageSamplersEnum), // https://docs.novelai.net/image/sampling.html
     noise: z.number().min(0).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
     strength: z.number().min(0.01).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
     scale: z.number().min(0).max(10), // https://docs.novelai.net/image/stepsguidance.html (scale is called Prompt Guidance)
@@ -233,18 +227,13 @@ export const AiGenerateImageParametersSchema = z
     sm_dyn: z.boolean(), // Enable SMEA DYN for any sampler if SMEA is enabled (best for Large+, but not Wallpaper resolutions)
     image: z.string().optional(), // b64-encoded png image for img2img
     controllnet_condition: z.string().optional(), // Controlnet mask gotten by the generate_controlnet_mask method
-    controllnet_model: AiGenerateControlNetModelSchema.optional(), // Model to use for the controlnet
+    controllnet_model: z.nativeEnum(ControlNetModelsEnum).optional(), // Model to use for the controlnet
     controlnet_strength: z.number(), // Influence of the chosen controlnet on the image
     dynamic_thresholding: z.boolean(), // Reduce the deepfrying effects of high scale (https://twitter.com/Birchlabs/status/1582165379832348672)
     add_original_image: z.boolean(), // Prevent seams along the edges of the mask, but may change the image slightly
     mask: z.string().optional(), //  Mask for inpainting (b64-encoded black and white png image, white is the inpainting area)
     cfg_rescale: z.number().min(0).max(1), // https://docs.novelai.net/image/stepsguidance.html#prompt-guidance-rescale
-    noise_schedule: z.enum([
-      "native",
-      "karras",
-      "exponential",
-      "polyexponential",
-    ]), // ?
+    noise_schedule: z.nativeEnum(NoiseScheduleEnum), // ?
   })
   .refine(
     (params) =>
@@ -287,7 +276,7 @@ export const DefaultAiGenerateImageParameters: AiGenerateImageParameters = {
   controlnet_strength: 1,
   add_original_image: false,
   cfg_rescale: 0,
-  noise_schedule: "native",
+  noise_schedule: NoiseScheduleEnum.native,
 };
 
 export interface AiGenerateImageModel {
@@ -296,6 +285,7 @@ export interface AiGenerateImageModel {
   legacy: boolean;
   inpainting: boolean;
   default: boolean;
+  version: number;
 }
 
 export const AiGenerateImageModels: AiGenerateImageModel[] = [
@@ -305,6 +295,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: true,
+    version: 1,
   },
   {
     name: "safe-diffusion",
@@ -312,6 +303,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: true,
+    version: 1,
   },
   {
     name: "nai-diffusion-furry",
@@ -319,6 +311,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: true,
+    version: 1,
   },
   {
     name: "custom",
@@ -326,6 +319,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: false,
+    version: 1,
   },
   {
     name: "nai-diffusion-inpainting",
@@ -333,6 +327,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: true,
     default: true,
+    version: 1,
   },
   {
     name: "nai-diffusion-3-inpainting",
@@ -340,6 +335,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: false,
     inpainting: true,
     default: true,
+    version: 3,
   },
   {
     name: "safe-diffusion-inpainting",
@@ -347,6 +343,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: true,
     default: true,
+    version: 1,
   },
   {
     name: "furry-diffusion-inpainting",
@@ -354,6 +351,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: true,
     default: true,
+    version: 1,
   },
   {
     name: "kandinsky-vanilla",
@@ -361,6 +359,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: false,
+    version: 1,
   },
   {
     name: "nai-diffusion-2",
@@ -368,6 +367,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: true,
     inpainting: false,
     default: true,
+    version: 2,
   },
   {
     name: "nai-diffusion-3",
@@ -375,6 +375,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     legacy: false,
     inpainting: false,
     default: true,
+    version: 3,
   },
 ] as const;
 
