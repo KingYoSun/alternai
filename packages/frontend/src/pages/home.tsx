@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NovelAiApi } from "shared";
 import {
@@ -27,6 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 
 function Home() {
   const [res, setRes] = useState("");
@@ -53,6 +54,16 @@ function Home() {
     });
 
     setRes(JSON.stringify(response.body));
+  }
+
+  function WatchValue(name: string) {
+    const val = useWatch({ name: name });
+    return <span>{val}</span>;
+  }
+
+  function WatchBoolean(name: string) {
+    const val = useWatch({ name: name });
+    return val;
   }
 
   return (
@@ -202,7 +213,7 @@ function Home() {
               />
             </div>
           </div>
-          <div className="flex flex-row justify-start items-start w-full h-fit mx-4 space-x-3 mb-4">
+          <div className="flex flex-row justify-start items-start w-full h-fit space-x-3 mb-4">
             <div>
               <Label htmlFor="qualityToggle">QualityTags</Label>
               <FormField
@@ -239,8 +250,7 @@ function Home() {
                       <Select
                         onValueChange={(val) => field.onChange(parseInt(val))}
                         defaultValue={String(
-                          NovelAiApi.UCPresetsEnum
-                            .Preset_Low_Quality_Bad_Anatomy,
+                          NovelAiApi.DefaultAiGenerateImageParameters.ucPreset,
                         )}
                       >
                         <SelectTrigger
@@ -269,6 +279,203 @@ function Home() {
                   </FormItem>
                 )}
               />
+            </div>
+          </div>
+          <div className={cn("flex flex-wrap w-full h-fit mb-4")}>
+            <div className="flexx flex-col w-full md:w-[45%] h-fit">
+              <FormField
+                control={optionForm.control}
+                name="parameters.steps"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Steps: {WatchValue("parameters.steps")}
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        name={field.name}
+                        defaultValue={[
+                          NovelAiApi.DefaultAiGenerateImageParameters.steps,
+                        ]}
+                        onValueChange={(val) => field.onChange(val[0])}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        value={[field.value]}
+                        min={0}
+                        max={50}
+                        step={1}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={optionForm.control}
+                name="parameters.scale"
+                render={({ field }) => (
+                  <FormItem className={cn("mt-3")}>
+                    <FormLabel>
+                      Guidance Scale: {WatchValue("parameters.scale")}
+                    </FormLabel>
+                    <FormControl>
+                      <Slider
+                        name={field.name}
+                        defaultValue={[
+                          NovelAiApi.DefaultAiGenerateImageParameters.scale,
+                        ]}
+                        onValueChange={(val) => field.onChange(val[0])}
+                        onBlur={field.onBlur}
+                        ref={field.ref}
+                        value={[field.value]}
+                        min={0}
+                        max={10}
+                        step={0.1}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <div
+                className={cn(
+                  "flex flex-row w-full h-fit mt-3 justify-start items-start space-x-3",
+                )}
+              >
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.dynamic_thresholding"
+                  render={({ field }) => (
+                    <FormItem className={cn("max-w-[70px]")}>
+                      <FormLabel>Descrisper</FormLabel>
+                      <FormControl>
+                        <Switch
+                          id="dynamic_thresholding"
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          onCheckedChange={field.onChange}
+                          checked={field.value}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.seed"
+                  render={({ field }) => (
+                    <FormItem className={cn("max-w-[130px] min-w-[100px]")}>
+                      <FormLabel>Seed</FormLabel>
+                      <FormControl>
+                        <Input
+                          id="seed"
+                          type="number"
+                          max="9999999999"
+                          min="0"
+                          name={field.name}
+                          value={field.value}
+                          ref={field.ref}
+                          onBlur={field.onBlur}
+                          onChange={(el) => {
+                            let value = parseInt(el.currentTarget.value);
+                            if (value < parseInt(el.currentTarget.min))
+                              value = 0;
+                            if (value > parseInt(el.currentTarget.max))
+                              value = parseInt(
+                                el.currentTarget.value.slice(0, 10),
+                              );
+                            field.onChange(value);
+                          }}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div
+                className={cn(
+                  "flex flex-row w-full h-fit justify-start items-start space-x-3",
+                )}
+              >
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.sampler"
+                  render={({ field }) => (
+                    <FormItem className={cn("w-fi")}>
+                      <FormLabel>Sampler</FormLabel>
+                      <FormControl>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={String(
+                            NovelAiApi.DefaultAiGenerateImageParameters.sampler,
+                          )}
+                        >
+                          <SelectTrigger id="sampler" className="w-150">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.values(NovelAiApi.ImageSamplersEnum).map(
+                              (val) => (
+                                <SelectItem
+                                  key={NovelAiApi.ImageSamplersEnum[val]}
+                                  value={val}
+                                >
+                                  {NovelAiApi.ImageSamplersEnum[val]}
+                                </SelectItem>
+                              ),
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.sm"
+                  render={({ field }) => (
+                    <FormItem className={cn("max-w-[70px] mt-2")}>
+                      <FormLabel>SMEA</FormLabel>
+                      <FormControl>
+                        <Switch
+                          id="sm"
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          onCheckedChange={field.onChange}
+                          checked={field.value}
+                          ref={field.ref}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={optionForm.control}
+                  name="parameters.sm_dyn"
+                  render={({ field }) => (
+                    <FormItem className={cn("max-w-[70px] mt-2")}>
+                      <FormLabel>DYN</FormLabel>
+                      <FormControl>
+                        <Switch
+                          id="sm_dyn"
+                          name={field.name}
+                          onBlur={field.onBlur}
+                          onCheckedChange={field.onChange}
+                          checked={field.value}
+                          ref={field.ref}
+                          disabled={!WatchBoolean("parameters.sm")}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
           </div>
           <Separator className={cn("mb-4")} />
