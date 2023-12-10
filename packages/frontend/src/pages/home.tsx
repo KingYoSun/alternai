@@ -78,7 +78,7 @@ function Home() {
       setCost("err");
       return;
     }
-    // TODO 計算見直し
+
     const cost = CaluculateCost.default(true, model.version, watcher[1]);
     setCost(String(cost));
   }, [watcher]);

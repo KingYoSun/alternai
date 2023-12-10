@@ -30,7 +30,6 @@ export default function caluculateCost(
     ImageSamplersEnum.k_lms,
   ];
   const sampler = params.sampler;
-  let per_sample: number;
 
   const uncond_scale = params.uncond_scale;
 
@@ -38,13 +37,16 @@ export default function caluculateCost(
 
   const resolution = [params.width, params.height];
   let r = resolution[0] * resolution[1];
+
   const index =
     Math.ceil(params.width / 64) * Math.ceil(params.height / 64) - 1;
   let costArr: number[] = [0, 0];
 
   let smea_factor = 1.0;
 
-  if (r > 65536) r = 65536;
+  let per_sample: number;
+
+  if (r < 65536) r = 65536;
 
   if (version === 3) {
     if (smea && smea_dyn) smea_factor = 1.4;
@@ -72,8 +74,8 @@ export default function caluculateCost(
 
   per_sample = Math.max(Math.ceil(per_sample * strength), 2);
 
-  if (version !== 1 && uncond_scale !== 1.0)
-    per_sample = Math.ceil(per_sample * uncond_scale);
+  if (version !== 1 && ![1.0, 0.0].some((v) => v === uncond_scale))
+    per_sample = Math.ceil(per_sample * 1.3);
 
   const opus_discount_resolution = version === 1 ? 640 * 640 : 1024 * 1024;
   const opus_discount_flag =
