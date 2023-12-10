@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 
 function Home() {
   const [res, setRes] = useState("");
@@ -76,9 +77,12 @@ function Home() {
                     }}
                     name={field.name}
                     value={field.value}
+                    defaultValue={
+                      NovelAiApi.DefaultAiGenerateImageOptions.model
+                    }
                   >
                     <SelectTrigger className="w-60">
-                      <SelectValue placeholder="Model" />
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
@@ -156,7 +160,7 @@ function Home() {
                 defaultValue={`[${NovelAiApi.DefaultAiGenerateImageParameters.width}, ${NovelAiApi.DefaultAiGenerateImageParameters.height}]`}
               >
                 <SelectTrigger id="resolution_select" className="w-60">
-                  <SelectValue placeholder="Resolution" />
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {resoArr.map((model) => (
@@ -191,6 +195,75 @@ function Home() {
                   <FormItem className={cn("max-w-[75px]")}>
                     <FormControl>
                       <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </div>
+          <div className="flex flex-row justify-start items-start w-full h-fit mx-4 space-x-3 mb-4">
+            <div>
+              <Label htmlFor="qualityToggle">QualityTags</Label>
+              <FormField
+                control={optionForm.control}
+                name="parameters.qualityToggle"
+                render={({ field }) => (
+                  <FormItem className={cn("w-fit")}>
+                    <FormControl>
+                      <Switch
+                        id="qualityToggle"
+                        className={cn("mt-2")}
+                        name={field.name}
+                        onBlur={field.onBlur}
+                        onCheckedChange={field.onChange}
+                        checked={field.value}
+                        ref={field.ref}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div>
+              <Label htmlFor="negative_prompt_preset">
+                Negative Prompt Preset
+              </Label>
+              <FormField
+                control={optionForm.control}
+                name="parameters.negative_prompt"
+                render={({ field }) => (
+                  <FormItem className={cn("max-w-[80px]")}>
+                    <FormControl>
+                      <Select
+                        onValueChange={(val) => field.onChange(parseInt(val))}
+                        defaultValue={String(
+                          NovelAiApi.UCPresetsEnum
+                            .Preset_Low_Quality_Bad_Anatomy,
+                        )}
+                      >
+                        <SelectTrigger
+                          id="negative_prompt_preset"
+                          className="w-70"
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.keys(NovelAiApi.UCPresetsEnum).map((key) => (
+                            <SelectItem
+                              key={key}
+                              value={String(
+                                NovelAiApi.UCPresetsEnum[
+                                  key as keyof NovelAiApi.UCPresets
+                                ],
+                              )}
+                            >
+                              {key}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>

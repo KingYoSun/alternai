@@ -130,11 +130,11 @@ export const ImageResolutions = [
   },
 ];
 
-interface UCPresets {
+export interface UCPresets {
   Preset_Low_Quality_Bad_Anatomy: number;
   Preset_Low_Quality: number;
-  Preset_Bad_Anatomy: number;
   Preset_None: number;
+  Preset_Bad_Anatomy: number;
   Preset_Heavy: number;
   Preset_Light: number;
 }
@@ -142,8 +142,8 @@ interface UCPresets {
 export const UCPresetsEnum: UCPresets = {
   Preset_Low_Quality_Bad_Anatomy: 0,
   Preset_Low_Quality: 1,
-  Preset_Bad_Anatomy: 2,
-  Preset_None: 3,
+  Preset_None: 2,
+  Preset_Bad_Anatomy: 3,
   Preset_Heavy: 4,
   Preset_Light: 5,
 };
