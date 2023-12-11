@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NovelAiApi, CaluculateCost } from "shared";
+import { NovelAiApi, CaluculateCost, Tokenizer } from "shared";
 import {
   Form,
   FormControl,
@@ -29,11 +29,15 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 
+const MAX_TOKEN_SIZE = 225;
+
 function Home() {
   const [res, setRes] = useState("");
   const [cost, setCost] = useState("");
   const [enableSmea, setEnableSmea] = useState(false);
   const [enableSmeaDyn, setEnableSmeaDyn] = useState(false);
+  const [posTokenSize, setPosTokenSize] = useState(0);
+  const [negTokenSize, setNegTokenSize] = useState(0);
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -47,7 +51,7 @@ function Home() {
     resolver: zodResolver(NovelAiApi.AiGenerateImageRequestSchema),
     defaultValues: NovelAiApi.DefaultAiGenerateImageOptions,
   });
-  const watcher = optionForm.watch(["model", "parameters"]);
+  const watcher = optionForm.watch(["input", "model", "parameters"]);
 
   async function onSubmit(options: NovelAiApi.AiGenerateImageRequest) {
     const backendHost = import.meta.env.VITE_BACKEND_HOST;
@@ -74,16 +78,20 @@ function Home() {
   }
 
   useEffect(() => {
-    const model = NovelAiApi.AiGenerateImageModels[watcher[0]];
-    const params = watcher[1];
+    // load model and params
+    const input = watcher[0];
+    const model = NovelAiApi.AiGenerateImageModels[watcher[1]];
+    const params = watcher[2];
     if (!model) {
       setCost("err");
       return;
     }
 
+    // caluculate const and set
     const cost = CaluculateCost.default(true, model.version, params);
     setCost(String(cost));
 
+    // enable smea & dyn setting
     const samplerObj = Object.values(NovelAiApi.ImageSamplers).find(
       (sampler) => sampler.name === params.sampler,
     );
@@ -92,6 +100,29 @@ function Home() {
 
     setEnableSmea(smeaEnabled);
     setEnableSmeaDyn(dynEnabled);
+
+    // tokenize prompts
+    // token size is 2 when empty input
+    Tokenizer.ClipTokenizer(input).then((tokenized) => {
+      setPosTokenSize(
+        tokenized.input_ids.size - 2 + (params.qualityToggle ? 5 : 0),
+      );
+    });
+    Tokenizer.ClipTokenizer(params.negative_prompt).then((tokenized) => {
+      let additionalTokens = 0;
+      switch (params.ucPreset) {
+        case 0:
+          additionalTokens = 48;
+          break;
+        case 1:
+          additionalTokens = 31;
+          break;
+        default:
+          additionalTokens = 0;
+      }
+      setNegTokenSize(tokenized.input_ids.size - 2 + additionalTokens);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [watcher]);
 
   return (
@@ -166,7 +197,18 @@ function Home() {
               name="input"
               render={({ field }) => (
                 <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:mr-2")}>
-                  <FormLabel>PositivePrompt</FormLabel>
+                  <FormLabel>
+                    PositivePrompt {posTokenSize}/{MAX_TOKEN_SIZE}
+                  </FormLabel>
+                  <Slider
+                    className={cn("mt-4 mb-2")}
+                    name="posTokensCount"
+                    defaultValue={[0]}
+                    value={[posTokenSize]}
+                    min={0}
+                    max={MAX_TOKEN_SIZE}
+                    step={1}
+                  />
                   <FormControl>
                     <Textarea className={cn("h-full")} {...field} />
                   </FormControl>
@@ -178,8 +220,21 @@ function Home() {
               control={optionForm.control}
               name="parameters.negative_prompt"
               render={({ field }) => (
-                <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:ml-2")}>
-                  <FormLabel>NegativePrompt</FormLabel>
+                <FormItem
+                  className={cn("h-40 md:h-5/6 md:w-1/2 md:ml-2 mt-10 md:mt-0")}
+                >
+                  <FormLabel>
+                    NegativePrompt {negTokenSize}/{MAX_TOKEN_SIZE}{" "}
+                  </FormLabel>
+                  <Slider
+                    className={cn("mt-4 mb-2")}
+                    name="negTokensCount"
+                    defaultValue={[0]}
+                    value={[negTokenSize]}
+                    min={0}
+                    max={MAX_TOKEN_SIZE}
+                    step={1}
+                  />
                   <FormControl>
                     <Textarea
                       className={cn("h-full")}
@@ -274,12 +329,10 @@ function Home() {
               />
             </div>
             <div>
-              <Label htmlFor="negative_prompt_preset">
-                Negative Prompt Preset
-              </Label>
+              <Label htmlFor="ucPreset">Negative Prompt Preset</Label>
               <FormField
                 control={optionForm.control}
-                name="parameters.negative_prompt"
+                name="parameters.ucPreset"
                 render={({ field }) => (
                   <FormItem className={cn("max-w-[80px]")}>
                     <FormControl>
@@ -289,25 +342,29 @@ function Home() {
                           NovelAiApi.DefaultAiGenerateImageParameters.ucPreset,
                         )}
                       >
-                        <SelectTrigger
-                          id="negative_prompt_preset"
-                          className="w-70"
-                        >
+                        <SelectTrigger id="ucPreset" className="w-70">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {Object.keys(NovelAiApi.UCPresetsEnum).map((key) => (
-                            <SelectItem
-                              key={key}
-                              value={String(
+                          {Object.keys(NovelAiApi.UCPresetsEnum)
+                            .filter(
+                              (key) =>
                                 NovelAiApi.UCPresetsEnum[
                                   key as keyof NovelAiApi.UCPresets
-                                ],
-                              )}
-                            >
-                              {key}
-                            </SelectItem>
-                          ))}
+                                ] < 3,
+                            )
+                            .map((key) => (
+                              <SelectItem
+                                key={key}
+                                value={String(
+                                  NovelAiApi.UCPresetsEnum[
+                                    key as keyof NovelAiApi.UCPresets
+                                  ],
+                                )}
+                              >
+                                {key}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                     </FormControl>
