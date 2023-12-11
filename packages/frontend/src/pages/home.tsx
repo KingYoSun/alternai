@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NovelAiApi } from "shared";
+import { NovelAiApi, CaluculateCost } from "shared";
 import {
   Form,
   FormControl,
@@ -28,11 +28,12 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { CaluculateCost } from "shared";
 
 function Home() {
   const [res, setRes] = useState("");
   const [cost, setCost] = useState("");
+  const [enableSmea, setEnableSmea] = useState(false);
+  const [enableSmeaDyn, setEnableSmeaDyn] = useState(false);
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -74,13 +75,23 @@ function Home() {
 
   useEffect(() => {
     const model = NovelAiApi.AiGenerateImageModels[watcher[0]];
+    const params = watcher[1];
     if (!model) {
       setCost("err");
       return;
     }
 
-    const cost = CaluculateCost.default(true, model.version, watcher[1]);
+    const cost = CaluculateCost.default(true, model.version, params);
     setCost(String(cost));
+
+    const samplerObj = Object.values(NovelAiApi.ImageSamplers).find(
+      (sampler) => sampler.name === params.sampler,
+    );
+    const smeaEnabled = Boolean(samplerObj?.smea);
+    const dynEnabled = Boolean(smeaEnabled && samplerObj?.smea_dyn);
+
+    setEnableSmea(smeaEnabled);
+    setEnableSmeaDyn(dynEnabled);
   }, [watcher]);
 
   return (
@@ -442,16 +453,52 @@ function Home() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.values(NovelAiApi.ImageSamplersEnum).map(
-                              (val) => (
-                                <SelectItem
-                                  key={NovelAiApi.ImageSamplersEnum[val]}
-                                  value={val}
-                                >
-                                  {NovelAiApi.ImageSamplersEnum[val]}
-                                </SelectItem>
-                              ),
-                            )}
+                            <SelectGroup>
+                              <SelectLabel>----Recommend----</SelectLabel>
+                              {Object.keys(NovelAiApi.ImageSamplers)
+                                .filter((key) => {
+                                  const model_key: string =
+                                    WatchValueRaw("model");
+                                  if (!model_key) return false;
+
+                                  const model =
+                                    NovelAiApi.AiGenerateImageModels[model_key];
+                                  return model.samplers_recommend.includes(
+                                    NovelAiApi.ImageSamplers[key],
+                                  );
+                                })
+                                .map((key) => (
+                                  <SelectItem
+                                    key={NovelAiApi.ImageSamplers[key].name}
+                                    value={NovelAiApi.ImageSamplers[key].name}
+                                  >
+                                    {key}
+                                  </SelectItem>
+                                ))}
+                            </SelectGroup>
+                            <SelectGroup>
+                              <SelectLabel>----Other----</SelectLabel>
+                              {Object.keys(NovelAiApi.ImageSamplers)
+                                .filter((key) => {
+                                  const model_key: string =
+                                    WatchValueRaw("model");
+                                  if (!model_key) return false;
+
+                                  const model =
+                                    NovelAiApi.AiGenerateImageModels[model_key];
+                                  return model.samplers.includes(
+                                    NovelAiApi.ImageSamplers[key],
+                                  );
+                                })
+                                .map((key) => (
+                                  <SelectItem
+                                    key={NovelAiApi.ImageSamplers[key].name}
+                                    value={NovelAiApi.ImageSamplers[key].name}
+                                  >
+                                    {key}
+                                  </SelectItem>
+                                ))}
+                            </SelectGroup>
                           </SelectContent>
                         </Select>
                       </FormControl>
@@ -470,9 +517,14 @@ function Home() {
                           id="sm"
                           name={field.name}
                           onBlur={field.onBlur}
-                          onCheckedChange={field.onChange}
+                          onCheckedChange={(checked) => {
+                            if (!checked)
+                              optionForm.setValue("parameters.sm_dyn", false);
+                            field.onChange(checked);
+                          }}
                           checked={field.value}
                           ref={field.ref}
+                          disabled={!enableSmea}
                         />
                       </FormControl>
                       <FormMessage />
@@ -493,7 +545,7 @@ function Home() {
                           onCheckedChange={field.onChange}
                           checked={field.value}
                           ref={field.ref}
-                          disabled={!WatchValueRaw("parameters.sm")}
+                          disabled={!enableSmeaDyn}
                         />
                       </FormControl>
                       <FormMessage />
