@@ -49,7 +49,9 @@ function Home() {
   const watcher = optionForm.watch(["model", "parameters"]);
 
   async function onSubmit(options: NovelAiApi.AiGenerateImageRequest) {
-    const response = await fetch(`${process.env.BACKEND}/generate-image`, {
+    const backendHost = import.meta.env.VITE_BACKEND_HOST;
+    console.log(`request to ${backendHost}/generate-image`);
+    const response = await fetch(`${backendHost}/generate-image`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -71,9 +73,7 @@ function Home() {
   }
 
   useEffect(() => {
-    const model = NovelAiApi.AiGenerateImageModels.find(
-      (el) => el.name === watcher[0],
-    );
+    const model = NovelAiApi.AiGenerateImageModels[watcher[0]];
     if (!model) {
       setCost("err");
       return;
@@ -114,25 +114,33 @@ function Home() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {NovelAiApi.AiGenerateImageModels.filter(
-                          (model) =>
-                            !model.legacy && model.default && !model.inpainting,
-                        ).map((model) => (
-                          <SelectItem key={model.name} value={model.name}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
+                        {Object.values(NovelAiApi.AiGenerateImageModels)
+                          .filter(
+                            (model) =>
+                              !model.legacy &&
+                              model.default &&
+                              !model.inpainting,
+                          )
+                          .map((model) => (
+                            <SelectItem key={model.name} value={model.name}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
                       </SelectGroup>
                       <SelectGroup>
                         <SelectLabel>----Lagacy Models-----</SelectLabel>
-                        {NovelAiApi.AiGenerateImageModels.filter(
-                          (model) =>
-                            model.legacy && model.default && !model.inpainting,
-                        ).map((model) => (
-                          <SelectItem key={model.name} value={model.name}>
-                            {model.label}
-                          </SelectItem>
-                        ))}
+                        {Object.values(NovelAiApi.AiGenerateImageModels)
+                          .filter(
+                            (model) =>
+                              model.legacy &&
+                              model.default &&
+                              !model.inpainting,
+                          )
+                          .map((model) => (
+                            <SelectItem key={model.name} value={model.name}>
+                              {model.label}
+                            </SelectItem>
+                          ))}
                       </SelectGroup>
                     </SelectContent>
                   </Select>
@@ -596,7 +604,9 @@ function Home() {
           </div>
           <Separator className={cn("mb-4")} />
           <Button type="submit">Generate: {cost} Anlas</Button>
-          <p className={cn("my-2")}>{res}</p>
+          <p className={cn("my-2")}>
+            {res}, {JSON.stringify(optionForm.formState.errors)}
+          </p>
         </form>
       </Form>
     </div>

@@ -8,6 +8,7 @@ const MAX_FILENAME_LEN = 50;
 export default async function AiGenerateImageRequest(
   options: NovelAiApi.AiGenerateImageRequest,
 ): Promise<ApiResponseBody> {
+  console.log("Generating image is started");
   if (
     options.parameters.sampler === NovelAiApi.ImageSamplersEnum.ddim &&
     options.model === "nai-diffusion-3"

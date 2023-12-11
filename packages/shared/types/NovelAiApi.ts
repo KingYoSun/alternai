@@ -7,7 +7,7 @@ export interface ImageResolution {
   excludes: string[];
 }
 
-export const ImageResolutions = [
+export const ImageResolutions: ImageResolution[] = [
   {
     name: "Wallpaper_Portrait",
     width: 1088,
@@ -288,8 +288,10 @@ export interface AiGenerateImageModel {
   version: number;
 }
 
-export const AiGenerateImageModels: AiGenerateImageModel[] = [
-  {
+type ModelsEnum = Record<string, AiGenerateImageModel>;
+
+export const AiGenerateImageModels: ModelsEnum = {
+  "nai-diffusion": {
     name: "nai-diffusion",
     label: "NAI Diffusion Anime V1",
     legacy: true,
@@ -297,7 +299,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  "safe-diffusion": {
     name: "safe-diffusion",
     label: "Safe Diffusion Anime V1",
     legacy: true,
@@ -305,7 +307,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  "nai-diffusion-furry": {
     name: "nai-diffusion-furry",
     label: "NAI Diffusion Furry",
     legacy: true,
@@ -313,7 +315,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  custom: {
     name: "custom",
     label: "Custom",
     legacy: true,
@@ -321,7 +323,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: false,
     version: 1,
   },
-  {
+  "nai-diffusion-inpainting": {
     name: "nai-diffusion-inpainting",
     label: "NAI Diffusion Anime Inpainting",
     legacy: true,
@@ -329,7 +331,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  "nai-diffusion-3-inpainting": {
     name: "nai-diffusion-3-inpainting",
     label: "NAI Diffusion Anime V3 Inpainting",
     legacy: false,
@@ -337,7 +339,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 3,
   },
-  {
+  "safe-diffusion-inpainting": {
     name: "safe-diffusion-inpainting",
     label: "Safe Diffusion Anime V1 Inpainting",
     legacy: true,
@@ -345,7 +347,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  "furry-diffusion-inpainting": {
     name: "furry-diffusion-inpainting",
     label: "NAI Diffusion Furry Inpainting",
     legacy: true,
@@ -353,7 +355,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 1,
   },
-  {
+  "kandinsky-vanilla": {
     name: "kandinsky-vanilla",
     label: "Kandinsky Vanilla",
     legacy: true,
@@ -361,7 +363,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: false,
     version: 1,
   },
-  {
+  "nai-diffusion-2": {
     name: "nai-diffusion-2",
     label: "NAI Diffusion Anime V2",
     legacy: true,
@@ -369,7 +371,7 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 2,
   },
-  {
+  "nai-diffusion-3": {
     name: "nai-diffusion-3",
     label: "NAI Diffusion Anime V3",
     legacy: false,
@@ -377,17 +379,17 @@ export const AiGenerateImageModels: AiGenerateImageModel[] = [
     default: true,
     version: 3,
   },
-] as const;
+} as const;
 
-const models_enum: readonly [string, ...string[]] = [
-  AiGenerateImageModels[0].name,
-  ...AiGenerateImageModels.filter((_m, index) => index > 0).map((m) => m.name),
+const model_enum: readonly [string, ...string[]] = [
+  Object.keys(AiGenerateImageModels)[0],
+  ...Object.keys(AiGenerateImageModels),
 ];
 
 export const AiGenerateImageRequestSchema = z
   .object({
     input: z.string().min(1).max(40000),
-    model: z.enum(models_enum),
+    model: z.enum(model_enum),
     action: z.enum(["generate", "img2img", "infill"]),
     parameters: AiGenerateImageParametersSchema,
     url: z
@@ -399,10 +401,10 @@ export const AiGenerateImageRequestSchema = z
   })
   .refine(
     (params) =>
-      params.model !== "nai-diffusion-3" &&
-      params.parameters.sampler === ImageSamplersEnum.ddim_v3,
+      params.model === "nai-diffusion-3" ||
+      params.parameters.sampler !== ImageSamplersEnum.ddim_v3,
     {
-      path: ["model", "params"],
+      path: ["parameters.sampler"],
       message: "ddim_v3 only works with nai-diffusion-3",
     },
   );
