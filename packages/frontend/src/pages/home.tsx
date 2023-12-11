@@ -149,12 +149,12 @@ function Home() {
               </FormItem>
             )}
           />
-          <div className="md:flex md:flex-row md:justify-center w-full h-96 md:h-60 space-y-10 md:space-y-0 mt-3 mb-6 md:mb-3">
+          <div className="md:flex md:flex-row md:justify-center w-full h-96 md:h-60 mt-3 mb-6 md:mb-3">
             <FormField
               control={optionForm.control}
               name="input"
               render={({ field }) => (
-                <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:mx-2")}>
+                <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:mr-2")}>
                   <FormLabel>PositivePrompt</FormLabel>
                   <FormControl>
                     <Textarea className={cn("h-full")} {...field} />
@@ -167,7 +167,7 @@ function Home() {
               control={optionForm.control}
               name="parameters.negative_prompt"
               render={({ field }) => (
-                <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:mx-2")}>
+                <FormItem className={cn("h-40 md:h-5/6 md:w-1/2 md:ml-2")}>
                   <FormLabel>NegativePrompt</FormLabel>
                   <FormControl>
                     <Textarea
