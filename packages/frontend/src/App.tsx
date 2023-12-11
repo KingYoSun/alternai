@@ -16,7 +16,6 @@ function App() {
         <div className={cn("flex justify-center w-full px-3 py-2 mt-16")}>
           <Outlet />
         </div>
-        <div className={cn("h-screen my-10")} />
       </div>
     </ThemeProvider>
   );

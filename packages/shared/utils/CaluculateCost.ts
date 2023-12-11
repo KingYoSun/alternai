@@ -2,7 +2,7 @@
 
 import {
   type AiGenerateImageParameters,
-  ImageSamplersEnum,
+  ImageSamplers,
 } from "../types/NovelAiApi";
 
 import {
@@ -23,11 +23,11 @@ export default function caluculateCost(
   const smea_dyn = params.sm_dyn;
 
   const samplerList = [
-    ImageSamplersEnum.plms,
-    ImageSamplersEnum.ddim,
-    ImageSamplersEnum.k_euler,
-    ImageSamplersEnum.k_euler_ancestral,
-    ImageSamplersEnum.k_lms,
+    ImageSamplers.plms.name,
+    ImageSamplers.DDIM.name,
+    ImageSamplers.Euler.name,
+    ImageSamplers.Euler_Ancestral.name,
+    ImageSamplers.k_lms.name,
   ];
   const sampler = params.sampler;
 
@@ -62,11 +62,11 @@ export default function caluculateCost(
           15.225164493059737) *
           steps) /
         28;
-    else if (sampler === ImageSamplersEnum.nai_smea_dyn || (smea && smea_dyn))
+    else if (sampler === ImageSamplers.nai_smea_dyn.name || (smea && smea_dyn))
       costArr = SMEA_DYN_COSTS[index];
-    else if (sampler === ImageSamplersEnum.nai_smea || smea)
+    else if (sampler === ImageSamplers.nai_smea.name || smea)
       costArr = SMEA_COSTS[index];
-    else if (sampler === ImageSamplersEnum.ddim) costArr = DDIM_COSTS[index];
+    else if (sampler === ImageSamplers.DDIM.name) costArr = DDIM_COSTS[index];
     else costArr = NAI_COSTS[index];
 
     per_sample = costArr[0] * steps + costArr[1];

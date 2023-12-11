@@ -10,10 +10,10 @@ export default async function AiGenerateImageRequest(
 ): Promise<ApiResponseBody> {
   console.log("Generating image is started");
   if (
-    options.parameters.sampler === NovelAiApi.ImageSamplersEnum.ddim &&
+    options.parameters.sampler === NovelAiApi.ImageSamplers.DDIM.name &&
     options.model === "nai-diffusion-3"
   ) {
-    options.parameters.sampler = NovelAiApi.ImageSamplersEnum.ddim_v3;
+    options.parameters.sampler = NovelAiApi.ImageSamplers.DDIM_V3.name;
   }
 
   let res: ApiResponseBody;

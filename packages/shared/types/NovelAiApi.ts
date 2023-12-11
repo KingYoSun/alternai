@@ -162,24 +162,101 @@ export const AiGenerateUCPresetSchema = z
 
 export type AiGenerateUCPreset = z.infer<typeof AiGenerateUCPresetSchema>;
 
-export enum ImageSamplersEnum {
-  k_lms = "k_lms",
-  k_euler = "k_euler",
-  k_euler_ancestral = "k_euler_ancestral",
-  k_heun = "k_heun",
-  plms = "plms", // doesn't work
-  ddim = "ddim",
-  ddim_v3 = "ddim_v3",
-  nai_smea = "nai_smea", // doesn't work
-  nai_smea_dyn = "nai_smea_dyn",
-  k_dpmpp_2m = "k_dpmpp_2m",
-  k_dpmpp_2s_ancestral = "k_dpmpp_2s_ancestral",
-  k_dpmpp_sde = "k_dpmpp_sde",
-  k_dpm_2 = "k_dpm_2",
-  k_dpm_2_ancestral = "k_dpm_2_ancestral",
-  k_dpm_adaptive = "k_dpm_adaptive",
-  k_dpm_fast = "k_dpm_fast",
+export interface ImageSampler {
+  name: string;
+  smea: boolean;
+  smea_dyn: boolean;
 }
+
+type ImageSamplerEnum = Record<string, ImageSampler>;
+
+export const ImageSamplers: ImageSamplerEnum = {
+  k_lms: {
+    name: "k_lms",
+    smea: false,
+    smea_dyn: false,
+  },
+  Euler: {
+    name: "k_euler",
+    smea: true,
+    smea_dyn: true,
+  },
+  Euler_Ancestral: {
+    name: "k_euler_ancestral",
+    smea: true,
+    smea_dyn: true,
+  },
+  k_heun: {
+    name: "k_heun",
+    smea: false,
+    smea_dyn: false,
+  },
+  plms: {
+    name: "plms", // doesn't work
+    smea: false,
+    smea_dyn: false,
+  },
+  DDIM: {
+    name: "ddim",
+    smea: false,
+    smea_dyn: false,
+  },
+  DDIM_V3: {
+    name: "ddim_v3",
+    smea: true,
+    smea_dyn: true,
+  },
+  nai_smea: {
+    name: "nai_smea", // doesn't work
+    smea: true,
+    smea_dyn: false,
+  },
+  nai_smea_dyn: {
+    name: "nai_smea_dyn",
+    smea: true,
+    smea_dyn: true,
+  },
+  "DPM++2M": {
+    name: "k_dpmpp_2m",
+    smea: true,
+    smea_dyn: true,
+  },
+  "DPM++_2s_Ancestral": {
+    name: "k_dpmpp_2s_ancestral",
+    smea: true,
+    smea_dyn: true,
+  },
+  "DPM++_SDE": {
+    name: "k_dpmpp_sde",
+    smea: true,
+    smea_dyn: true,
+  },
+  DPM2: {
+    name: "k_dpm_2",
+    smea: true,
+    smea_dyn: true,
+  },
+  k_dpm_2_ancestral: {
+    name: "k_dpm_2_ancestral",
+    smea: false,
+    smea_dyn: false,
+  },
+  k_dpm_adaptive: {
+    name: "k_dpm_adaptive",
+    smea: false,
+    smea_dyn: false,
+  },
+  DPM_Fast: {
+    name: "k_dpm_fast",
+    smea: true,
+    smea_dyn: false,
+  },
+};
+
+const ImageSamplersEnum: readonly [string, ...string[]] = [
+  Object.keys(ImageSamplers)[0],
+  ...Object.keys(ImageSamplers),
+];
 
 export enum ControlNetModelsEnum {
   Palette_Swap = "hed",
@@ -216,7 +293,7 @@ export const AiGenerateImageParametersSchema = z
     ucPreset: AiGenerateUCPresetSchema, // Default UC to prepend to the UC
     n_samples: z.number().int(), // Number of images to return
     seed: z.number().int().min(0).max(9999999999), // Random seed to use for the image. The ith image has seed + i for seed
-    sampler: z.nativeEnum(ImageSamplersEnum), // https://docs.novelai.net/image/sampling.html
+    sampler: z.enum(ImageSamplersEnum), // https://docs.novelai.net/image/sampling.html
     noise: z.number().min(0).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
     strength: z.number().min(0.01).max(0.99).optional(), // https://docs.novelai.net/image/strengthnoise.html
     scale: z.number().min(0).max(10), // https://docs.novelai.net/image/stepsguidance.html (scale is called Prompt Guidance)
@@ -265,7 +342,7 @@ export const DefaultAiGenerateImageParameters: AiGenerateImageParameters = {
   ucPreset: UCPresetsEnum.Preset_Low_Quality_Bad_Anatomy,
   n_samples: 1,
   seed: 0,
-  sampler: ImageSamplersEnum.k_euler,
+  sampler: ImageSamplers.Euler.name,
   steps: 28,
   scale: 5,
   uncond_scale: 1,
@@ -286,6 +363,8 @@ export interface AiGenerateImageModel {
   inpainting: boolean;
   default: boolean;
   version: number;
+  samplers_recommend: ImageSampler[];
+  samplers: ImageSampler[];
 }
 
 type ModelsEnum = Record<string, AiGenerateImageModel>;
@@ -298,6 +377,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "safe-diffusion": {
     name: "safe-diffusion",
@@ -306,6 +397,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "nai-diffusion-furry": {
     name: "nai-diffusion-furry",
@@ -314,6 +417,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   custom: {
     name: "custom",
@@ -322,6 +437,8 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: false,
     version: 1,
+    samplers_recommend: [],
+    samplers: [],
   },
   "nai-diffusion-inpainting": {
     name: "nai-diffusion-inpainting",
@@ -330,6 +447,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: true,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "nai-diffusion-3-inpainting": {
     name: "nai-diffusion-3-inpainting",
@@ -338,6 +467,16 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: true,
     default: true,
     version: 3,
+    samplers_recommend: [
+      ImageSamplers.Euler,
+      ImageSamplers.Euler_Ancestral,
+      ImageSamplers["DPM++_2s_Ancestral"],
+    ],
+    samplers: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DDIM,
+    ],
   },
   "safe-diffusion-inpainting": {
     name: "safe-diffusion-inpainting",
@@ -346,6 +485,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: true,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "furry-diffusion-inpainting": {
     name: "furry-diffusion-inpainting",
@@ -354,6 +505,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: true,
     default: true,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "kandinsky-vanilla": {
     name: "kandinsky-vanilla",
@@ -362,6 +525,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: false,
     version: 1,
+    samplers_recommend: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.Euler_Ancestral,
+    ],
+    samplers: [
+      ImageSamplers.Euler,
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.DDIM,
+    ],
   },
   "nai-diffusion-2": {
     name: "nai-diffusion-2",
@@ -370,6 +545,18 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: true,
     version: 2,
+    samplers_recommend: [
+      ImageSamplers.Euler_Ancestral,
+      ImageSamplers["DPM++_2s_Ancestral"],
+      ImageSamplers.DDIM,
+    ],
+    samplers: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers.DPM2,
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DPM_Fast,
+      ImageSamplers.Euler,
+    ],
   },
   "nai-diffusion-3": {
     name: "nai-diffusion-3",
@@ -378,6 +565,16 @@ export const AiGenerateImageModels: ModelsEnum = {
     inpainting: false,
     default: true,
     version: 3,
+    samplers_recommend: [
+      ImageSamplers.Euler,
+      ImageSamplers.Euler_Ancestral,
+      ImageSamplers["DPM++_2s_Ancestral"],
+    ],
+    samplers: [
+      ImageSamplers["DPM++2M"],
+      ImageSamplers["DPM++_SDE"],
+      ImageSamplers.DDIM,
+    ],
   },
 } as const;
 
@@ -402,7 +599,7 @@ export const AiGenerateImageRequestSchema = z
   .refine(
     (params) =>
       params.model === "nai-diffusion-3" ||
-      params.parameters.sampler !== ImageSamplersEnum.ddim_v3,
+      params.parameters.sampler !== ImageSamplers.DDIM_V3.name,
     {
       path: ["parameters.sampler"],
       message: "ddim_v3 only works with nai-diffusion-3",
