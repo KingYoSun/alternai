@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NovelAiApi, CaluculateCost, Tokenizer } from "shared";
+import { NovelAiApi, CaluculateCost } from "shared";
 import {
   Form,
   FormControl,
@@ -28,6 +28,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import Tokenizer from "@/lib/Tokenizer";
 
 const MAX_TOKEN_SIZE = 225;
 
@@ -38,6 +39,7 @@ function Home() {
   const [enableSmeaDyn, setEnableSmeaDyn] = useState(false);
   const [posTokenSize, setPosTokenSize] = useState(0);
   const [negTokenSize, setNegTokenSize] = useState(0);
+  const [enableRandomSeed, setEnableRandomSeed] = useState(true);
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -54,8 +56,13 @@ function Home() {
   const watcher = optionForm.watch(["input", "model", "parameters"]);
 
   async function onSubmit(options: NovelAiApi.AiGenerateImageRequest) {
+    if (enableRandomSeed)
+      optionForm.setValue(
+        "parameters.seed",
+        Math.floor(Math.random() * 10000000000),
+      );
+
     const backendHost = import.meta.env.VITE_BACKEND_HOST;
-    console.log(`request to ${backendHost}/generate-image`);
     const response = await fetch(`${backendHost}/generate-image`, {
       method: "POST",
       headers: {
@@ -103,12 +110,12 @@ function Home() {
 
     // tokenize prompts
     // token size is 2 when empty input
-    Tokenizer.ClipTokenizer(input).then((tokenized) => {
+    Tokenizer(input).then((tokenized) => {
       setPosTokenSize(
         tokenized.input_ids.size - 2 + (params.qualityToggle ? 5 : 0),
       );
     });
-    Tokenizer.ClipTokenizer(params.negative_prompt).then((tokenized) => {
+    Tokenizer(params.negative_prompt).then((tokenized) => {
       let additionalTokens = 0;
       switch (params.ucPreset) {
         case 0:
@@ -487,6 +494,16 @@ function Home() {
                     </FormItem>
                   )}
                 />
+                <div className={cn("flex flex-col w-60 mt-2")}>
+                  <Label htmlFor="enable-random-seed">Random Seed</Label>
+                  <Switch
+                    className={cn("mt-2")}
+                    id="enable-random-seed"
+                    name="enableRandomSeed"
+                    checked={enableRandomSeed}
+                    onCheckedChange={(val) => setEnableRandomSeed(val)}
+                  />
+                </div>
               </div>
               <div
                 className={cn(

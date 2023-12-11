@@ -254,8 +254,8 @@ export const ImageSamplers: ImageSamplerEnum = {
 };
 
 const ImageSamplersEnum: readonly [string, ...string[]] = [
-  Object.keys(ImageSamplers)[0],
-  ...Object.keys(ImageSamplers),
+  Object.values(ImageSamplers)[0].name,
+  ...Object.values(ImageSamplers).map((sampler) => sampler.name),
 ];
 
 export enum ControlNetModelsEnum {
@@ -347,8 +347,8 @@ export const DefaultAiGenerateImageParameters: AiGenerateImageParameters = {
   scale: 5,
   uncond_scale: 1,
   negative_prompt: "",
-  sm: false,
-  sm_dyn: false,
+  sm: true,
+  sm_dyn: true,
   dynamic_thresholding: false,
   controlnet_strength: 1,
   add_original_image: false,
