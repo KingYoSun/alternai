@@ -1,6 +1,7 @@
 import { NovelAiApi } from "shared";
 import AdmZip from "adm-zip";
 import { type ApiResponseBody } from "shared/types/Api";
+import { Buffer } from "buffer";
 
 const API_HOST = "https://api.novelai.net";
 const MAX_FILENAME_LEN = 50;
@@ -45,9 +46,11 @@ export default async function AiGenerateImageRequest(
     options.input.length <= MAX_FILENAME_LEN
       ? options.input
       : options.input.substring(0, MAX_FILENAME_LEN);
+
+  let base64Image!: string;
   await Promise.all(
     entries.map((entry, index) => {
-      const newFilename = `${baseFilename}_${index}.png`;
+      const newFilename = `${baseFilename}_${index}_${new Date().getTime()}.png`;
       zip.extractEntryTo(
         entry.name,
         "/output/",
@@ -56,13 +59,18 @@ export default async function AiGenerateImageRequest(
         false,
         newFilename,
       );
+
+      const imageBuff = zip.readFile(entry);
+      if (imageBuff === null) return "failed";
+
+      base64Image = "data:image/png;base64," + imageBuff.toString("base64");
       return "succeeded";
     }),
   );
 
   res = {
     status: 200,
-    message: "Finished generating image.",
+    message: base64Image,
   };
   return res;
 }

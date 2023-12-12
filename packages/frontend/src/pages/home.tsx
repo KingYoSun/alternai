@@ -29,6 +29,8 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import Tokenizer from "@/lib/Tokenizer";
 import FooterBtn from "@/components/footer-btn";
+import { Image } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 const MAX_TOKEN_SIZE = 225;
 
@@ -41,6 +43,7 @@ function Home() {
   const [negTokenSize, setNegTokenSize] = useState(0);
   const [enableRandomSeed, setEnableRandomSeed] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [base64Image, setBase64Image] = useState<string>("");
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -73,8 +76,14 @@ function Home() {
       body: JSON.stringify(options),
     });
 
+    const body = await response.text();
+
+    if (body && body.startsWith("data:image/png;base64,")) {
+      setBase64Image(body);
+    } else {
+      setRes("error: ");
+    }
     setLoading(false);
-    setRes(JSON.stringify(response.body));
   }
 
   function WatchValue(name: string) {
@@ -259,132 +268,139 @@ function Home() {
               )}
             />
           </div>
-          <div className="flex flex-row justify-start items-end w-full h-fit mb-6 md:mb-3">
-            <div>
-              <Label htmlFor="resolution_select">Resolution Setting</Label>
-              <Select
-                onValueChange={(val) => {
-                  const resolution: number[] = JSON.parse(val);
-                  optionForm.setValue("parameters.width", resolution[0]);
-                  optionForm.setValue("parameters.height", resolution[1]);
-                }}
-                defaultValue={`[${NovelAiApi.DefaultAiGenerateImageParameters.width}, ${NovelAiApi.DefaultAiGenerateImageParameters.height}]`}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full h-fit mb-6 md:mb-3">
+            <div className="grid-item col-span-1 h-fit">
+              <div
+                className={cn(
+                  "flex flex-row justify-start items-end w-full h-fit mb-4",
+                )}
               >
-                <SelectTrigger id="resolution_select" className="w-60">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {resoArr.map((model) => (
-                    <SelectItem
-                      key={model.name}
-                      value={`[${model.width}, ${model.height}]`}
-                    >
-                      {model.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-row justify-around items-center h-fit mx-4">
-              <FormField
-                control={optionForm.control}
-                name="parameters.width"
-                render={({ field }) => (
-                  <FormItem className={cn("max-w-[75px]")}>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <span className={cn("mx-2")}>X</span>
-              <FormField
-                control={optionForm.control}
-                name="parameters.height"
-                render={({ field }) => (
-                  <FormItem className={cn("max-w-[75px]")}>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-          <div className="flex flex-row justify-start items-start w-full h-fit space-x-3 mb-4">
-            <div>
-              <Label htmlFor="qualityToggle">QualityTags</Label>
-              <FormField
-                control={optionForm.control}
-                name="parameters.qualityToggle"
-                render={({ field }) => (
-                  <FormItem className={cn("w-fit")}>
-                    <FormControl>
-                      <Switch
-                        id="qualityToggle"
-                        className={cn("mt-2")}
-                        name={field.name}
-                        onBlur={field.onBlur}
-                        onCheckedChange={field.onChange}
-                        checked={field.value}
-                        ref={field.ref}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <div>
-              <Label htmlFor="ucPreset">Negative Prompt Preset</Label>
-              <FormField
-                control={optionForm.control}
-                name="parameters.ucPreset"
-                render={({ field }) => (
-                  <FormItem className={cn("max-w-[80px]")}>
-                    <FormControl>
-                      <Select
-                        onValueChange={(val) => field.onChange(parseInt(val))}
-                        defaultValue={String(
-                          NovelAiApi.DefaultAiGenerateImageParameters.ucPreset,
-                        )}
-                      >
-                        <SelectTrigger id="ucPreset" className="w-70">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.keys(NovelAiApi.UCPresetsEnum)
-                            .filter(
-                              (key) =>
-                                NovelAiApi.UCPresetsEnum[
-                                  key as keyof NovelAiApi.UCPresets
-                                ] < 3,
-                            )
-                            .map((key) => (
-                              <SelectItem
-                                key={key}
-                                value={String(
-                                  NovelAiApi.UCPresetsEnum[
-                                    key as keyof NovelAiApi.UCPresets
-                                  ],
-                                )}
-                              >
-                                {key}
-                              </SelectItem>
-                            ))}
-                        </SelectContent>
-                      </Select>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
-          <div className={cn("flex flex-wrap w-full h-fit mb-4")}>
-            <div className="flexx flex-col w-full md:w-[45%] h-fit">
+                <div>
+                  <Label htmlFor="resolution_select">Resolution Setting</Label>
+                  <Select
+                    onValueChange={(val) => {
+                      const resolution: number[] = JSON.parse(val);
+                      optionForm.setValue("parameters.width", resolution[0]);
+                      optionForm.setValue("parameters.height", resolution[1]);
+                    }}
+                    defaultValue={`[${NovelAiApi.DefaultAiGenerateImageParameters.width}, ${NovelAiApi.DefaultAiGenerateImageParameters.height}]`}
+                  >
+                    <SelectTrigger id="resolution_select" className="w-60">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {resoArr.map((model) => (
+                        <SelectItem
+                          key={model.name}
+                          value={`[${model.width}, ${model.height}]`}
+                        >
+                          {model.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-row justify-around items-center h-fit mx-4">
+                  <FormField
+                    control={optionForm.control}
+                    name="parameters.width"
+                    render={({ field }) => (
+                      <FormItem className={cn("max-w-[75px]")}>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <span className={cn("mx-2")}>X</span>
+                  <FormField
+                    control={optionForm.control}
+                    name="parameters.height"
+                    render={({ field }) => (
+                      <FormItem className={cn("max-w-[75px]")}>
+                        <FormControl>
+                          <Input {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-row justify-start items-start w-full h-fit space-x-3 mb-4">
+                <div>
+                  <Label htmlFor="qualityToggle">QualityTags</Label>
+                  <FormField
+                    control={optionForm.control}
+                    name="parameters.qualityToggle"
+                    render={({ field }) => (
+                      <FormItem className={cn("w-fit")}>
+                        <FormControl>
+                          <Switch
+                            id="qualityToggle"
+                            className={cn("mt-2")}
+                            name={field.name}
+                            onBlur={field.onBlur}
+                            onCheckedChange={field.onChange}
+                            checked={field.value}
+                            ref={field.ref}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="ucPreset">Negative Prompt Preset</Label>
+                  <FormField
+                    control={optionForm.control}
+                    name="parameters.ucPreset"
+                    render={({ field }) => (
+                      <FormItem className={cn("max-w-[80px]")}>
+                        <FormControl>
+                          <Select
+                            onValueChange={(val) =>
+                              field.onChange(parseInt(val))
+                            }
+                            defaultValue={String(
+                              NovelAiApi.DefaultAiGenerateImageParameters
+                                .ucPreset,
+                            )}
+                          >
+                            <SelectTrigger id="ucPreset" className="w-70">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {Object.keys(NovelAiApi.UCPresetsEnum)
+                                .filter(
+                                  (key) =>
+                                    NovelAiApi.UCPresetsEnum[
+                                      key as keyof NovelAiApi.UCPresets
+                                    ] < 3,
+                                )
+                                .map((key) => (
+                                  <SelectItem
+                                    key={key}
+                                    value={String(
+                                      NovelAiApi.UCPresetsEnum[
+                                        key as keyof NovelAiApi.UCPresets
+                                      ],
+                                    )}
+                                  >
+                                    {key}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              </div>
               <FormField
                 control={optionForm.control}
                 name="parameters.steps"
@@ -728,6 +744,32 @@ function Home() {
                   )}
                 />
               </div>
+            </div>
+            <div className={cn("grid-item col-span-1 h-full")}>
+              {base64Image.length > 0 ? (
+                <img
+                  src={base64Image}
+                  className={cn("object-contain w-full h-fit")}
+                />
+              ) : (
+                <div
+                  className={cn(
+                    "relative w-full h-[600px] md:h-full rounded-2xl border-solid border-4 border-slate-500",
+                  )}
+                >
+                  {loading ? (
+                    <Loader2
+                      className={cn(
+                        "h-12 w-12 animate-spin absolute inset-0 m-auto",
+                      )}
+                    />
+                  ) : (
+                    <Image
+                      className={cn("h-12 w-12 absolute inset-0 m-auto")}
+                    />
+                  )}
+                </div>
+              )}
             </div>
           </div>
           <Separator className={cn("mb-4")} />
