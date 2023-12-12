@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { NovelAiApi, CaluculateCost } from "shared";
@@ -29,6 +28,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import Tokenizer from "@/lib/Tokenizer";
+import FooterBtn from "@/components/footer-btn";
 
 const MAX_TOKEN_SIZE = 225;
 
@@ -40,6 +40,7 @@ function Home() {
   const [posTokenSize, setPosTokenSize] = useState(0);
   const [negTokenSize, setNegTokenSize] = useState(0);
   const [enableRandomSeed, setEnableRandomSeed] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const initResoArr: NovelAiApi.ImageResolution[] =
     NovelAiApi.ImageResolutions.filter(
@@ -62,6 +63,7 @@ function Home() {
         Math.floor(Math.random() * 10000000000),
       );
 
+    setLoading(true);
     const backendHost = import.meta.env.VITE_BACKEND_HOST;
     const response = await fetch(`${backendHost}/generate-image`, {
       method: "POST",
@@ -71,6 +73,7 @@ function Home() {
       body: JSON.stringify(options),
     });
 
+    setLoading(false);
     setRes(JSON.stringify(response.body));
   }
 
@@ -129,7 +132,6 @@ function Home() {
       }
       setNegTokenSize(tokenized.input_ids.size - 2 + additionalTokens);
     });
-     
   }, [watcher]);
 
   return (
@@ -729,10 +731,14 @@ function Home() {
             </div>
           </div>
           <Separator className={cn("mb-4")} />
-          <Button type="submit">Generate: {cost} Anlas</Button>
           <p className={cn("my-2")}>
             {res}, {JSON.stringify(optionForm.formState.errors)}
           </p>
+          <div
+            className={cn("fixed bottom-0 mx-auto max-w-screen-lg h-fit py-2")}
+          >
+            <FooterBtn cost={cost} loading={loading} />
+          </div>
         </form>
       </Form>
     </div>
