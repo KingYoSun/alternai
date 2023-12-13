@@ -3,3 +3,4 @@ dist/
 .env
 output/*.*
 sample_options.json
+data/*

@@ -2,12 +2,14 @@ import express, {
   type Request,
   type Response,
   type NextFunction,
+  type RequestHandler,
 } from "express";
 import bodyParser from "body-parser";
 import AiGenerateImageRequest from "./api/AiGenerateImage";
 import { z, type AnyZodObject } from "zod";
 import { NovelAiApi } from "shared";
 import cors from "cors";
+import RedisCli from "./client/redis";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -51,6 +53,11 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", (_req, res: Response) => {
   res.send("Status is Healthy");
 });
+
+app.get("/redis", (async (_req, res: Response) => {
+  await new RedisCli().init();
+  res.status(200).send("connected!");
+}) as RequestHandler);
 
 app.post("/post-test", (req: Request, res: Response) => {
   console.log(`PostTest!: ${JSON.stringify(req.body)}`);

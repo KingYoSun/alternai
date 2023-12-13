@@ -14,6 +14,15 @@ services:
     volumes:
       - .:/app
       - ./output:/output
+    healthcheck:
+      test: echo "fetch('http://localhost:8090/')" | node
+      interval: 10s
+      timeout: 8s
+      retries: 8
+      start_period: 5s
+    depends_on:
+      redis:
+        condition: service_healthy
   frontend:
     build:
       context: .
@@ -27,4 +36,17 @@ services:
     volumes:
       - .:/app
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+  redis:
+    image: "redis:latest"
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 8s
+      retries: 8
+      start_period: 5s
+    volumes:
+      - "./data/redis:/data"

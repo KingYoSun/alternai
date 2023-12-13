@@ -3,6 +3,7 @@
     "esModuleInterop": true,
     "rootDir": ".",
     "outDir": "./dist",
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "lib": ["dom", "es2015", "es2020"]
   }
 }
