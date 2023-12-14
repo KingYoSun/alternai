@@ -7,6 +7,7 @@ interface setProps {
 
 export default class RedisCli {
   client: RedisClientType;
+  connected: boolean;
 
   constructor() {
     this.client = createClient({ url: process.env.REDIS_URL });
@@ -16,7 +17,10 @@ export default class RedisCli {
   }
 
   async init(): Promise<void> {
+    if (this.connected) return;
+
     await this.client.connect();
+    this.connected = true;
   }
 
   async set({ key, value }: setProps): Promise<void> {

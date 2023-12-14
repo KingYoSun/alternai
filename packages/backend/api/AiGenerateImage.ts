@@ -2,14 +2,23 @@ import { NovelAiApi } from "shared";
 import AdmZip from "adm-zip";
 import { type ApiResponseBody } from "shared/types/Api";
 import { Buffer } from "buffer";
+import type RedisCli from "../client/redis";
+import { type Settings } from "shared/types/Settings";
 
 const API_HOST = "https://api.novelai.net";
 const MAX_FILENAME_LEN = 50;
 
-export default async function AiGenerateImageRequest(
-  options: NovelAiApi.AiGenerateImageRequest,
-): Promise<ApiResponseBody> {
-  console.log("Generating image is started");
+const REDIS_KEY = "alternai:settings";
+
+interface Props {
+  redis: RedisCli;
+  options: NovelAiApi.AiGenerateImageRequest;
+}
+
+export default async function AiGenerateImageRequest({
+  redis,
+  options,
+}: Props): Promise<ApiResponseBody> {
   if (
     options.parameters.sampler === NovelAiApi.ImageSamplers.DDIM.name &&
     options.model === "nai-diffusion-3"
@@ -18,6 +27,19 @@ export default async function AiGenerateImageRequest(
   }
 
   let res: ApiResponseBody;
+
+  await redis.init();
+  const settings = await redis.get(REDIS_KEY);
+
+  if (settings === null)
+    return {
+      status: 500,
+      message: "NovelAI Token is not set",
+    };
+
+  const parsed = JSON.parse(settings) as Settings;
+  const NAI_API_TOKEN = parsed.NAI_API_TOKEN;
+
   const endpoint = "/ai/generate-image";
   const apiRes = await fetch(`${API_HOST}${endpoint}`, {
     method: "POST",
@@ -26,7 +48,7 @@ export default async function AiGenerateImageRequest(
     credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.NAI_API_TOKEN}`,
+      Authorization: `Bearer ${NAI_API_TOKEN}`,
     },
     body: JSON.stringify(options),
   });

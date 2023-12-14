@@ -7,9 +7,10 @@ import express, {
 import bodyParser from "body-parser";
 import AiGenerateImageRequest from "./api/AiGenerateImage";
 import { z, type AnyZodObject } from "zod";
-import { NovelAiApi } from "shared";
+import { NovelAiApi, SettingsApi } from "shared";
 import cors from "cors";
 import RedisCli from "./client/redis";
+import { SettingsGetRequest, SettingsPutRequst } from "./api/Settings";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -36,6 +37,8 @@ const validate =
     }
   };
 
+const redis = new RedisCli();
+
 const app: express.Express = express();
 const port = 8090;
 
@@ -59,25 +62,42 @@ app.get("/redis", (async (_req, res: Response) => {
   res.status(200).send("connected!");
 }) as RequestHandler);
 
+app.get("/settings", (async (_req, res: Response) => {
+  const body = await SettingsGetRequest({ redis });
+
+  res.status(body.status).send(body.message);
+}) as RequestHandler);
+
+app.put("/settings", (async (req: Request, res: Response) => {
+  await validate(dataSchema(SettingsApi.SettingsRequestSchema));
+  const body = await SettingsPutRequst({ redis, settings: req.body });
+
+  if (body != null) {
+    res.status(body.status).send(body.message);
+  } else {
+    res.status(500).send("response body is null");
+  }
+}) as RequestHandler);
+
 app.post("/post-test", (req: Request, res: Response) => {
   console.log(`PostTest!: ${JSON.stringify(req.body)}`);
   res.send(`Received: ${JSON.stringify(req.body)}`);
 });
 
-app.post("/generate-image", (req: Request, res: Response): void => {
-  console.log("validation step...");
-  validate(dataSchema(NovelAiApi.AiGenerateImageRequestSchema))
-    .then(() => {
-      AiGenerateImageRequest(req.body)
-        .then((body) => res.status(body.status).send(body.message))
-        .catch((e) => {
-          throw e;
-        });
-    })
-    .catch((e) => {
-      return res.status(400).send(e);
-    });
-});
+app.post("/generate-image", (async (req: Request, res: Response) => {
+  await validate(dataSchema(NovelAiApi.AiGenerateImageRequestSchema));
+  const body = await AiGenerateImageRequest({ redis, options: req.body }).catch(
+    (e) => {
+      res.status(500).send(e);
+    },
+  );
+
+  if (body != null) {
+    res.status(body.status).send(body.message);
+  } else {
+    res.status(500).send("response body is null");
+  }
+}) as RequestHandler);
 
 app.listen(port, () => {
   console.log(`Express app is listening on port ${port}`);
