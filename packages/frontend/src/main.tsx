@@ -5,7 +5,7 @@ import "@/index.css";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Home from "@/pages/home.tsx";
 import ErrorPage from "@/pages/error.tsx";
-import Unko from "@/pages/unko.tsx";
+import Settings from "@/pages/settings.tsx";
 
 const router = createBrowserRouter([
   {
@@ -18,8 +18,8 @@ const router = createBrowserRouter([
         element: <Home />,
       },
       {
-        path: "/unko",
-        element: <Unko />,
+        path: "/settings",
+        element: <Settings />,
       },
     ],
   },

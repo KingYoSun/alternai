@@ -4,10 +4,6 @@ import {
   NavigationMenuLink,
   NavigationMenuList,
   navigationMenuTriggerStyle,
-  // NavigationMenuContent,
-  // NavigationMenuTrigger,
-  // NavigationMenuIndicator,
-  // NavigationMenuViewport,
 } from "@/components/ui/navigation-menu";
 
 import { Link } from "react-router-dom";
@@ -44,9 +40,9 @@ function CustomHeader({ currentPath }: HeaderProps) {
       isActive: currentPath === "/",
     },
     {
-      name: "Unko",
-      href: "/unko",
-      isActive: currentPath === "/unko",
+      name: "Settings",
+      href: "/settings",
+      isActive: currentPath === "/settings",
     },
   ];
   return (

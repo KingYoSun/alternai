@@ -8,3 +8,10 @@ export const SettingsRequestSchema = z.object({
 });
 
 export type Settings = z.infer<typeof SettingsRequestSchema>;
+
+export const DefaultSettings: Settings = {
+  NAI_API_TOKEN: "",
+  NEXTCLOUD_URL: "",
+  NEXTCLOUD_USER: "",
+  NEXTCLOUD_PASS: "",
+};
