@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { SettingsApi } from "shared";
+import {
+  SettingsRequestSchema,
+  type Settings,
+  DefaultSettings,
+} from "shared/types/Settings";
 import {
   Form,
   FormControl,
@@ -23,12 +27,12 @@ export default function Settings() {
 
   const backendHost = import.meta.env.VITE_BACKEND_HOST;
 
-  const settingsForm = useForm<SettingsApi.Settings>({
-    resolver: zodResolver(SettingsApi.SettingsRequestSchema),
-    defaultValues: SettingsApi.DefaultSettings,
+  const settingsForm = useForm<Settings>({
+    resolver: zodResolver(SettingsRequestSchema),
+    defaultValues: DefaultSettings,
   });
 
-  async function onSubmit(settings: SettingsApi.Settings) {
+  async function onSubmit(settings: Settings) {
     setLoading(true);
     const putRes = await fetch(`${backendHost}/settings`, {
       method: "PUT",
@@ -54,10 +58,7 @@ export default function Settings() {
       if (getRes.status === 200) {
         const getBody = await getRes.json();
         Object.keys(getBody).map((key) => {
-          settingsForm.setValue(
-            key as keyof SettingsApi.Settings,
-            getBody[key],
-          );
+          settingsForm.setValue(key as keyof Settings, getBody[key]);
         });
       }
       setLoading(false);

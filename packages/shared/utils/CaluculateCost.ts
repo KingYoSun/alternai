@@ -3,7 +3,7 @@
 import {
   type AiGenerateImageParameters,
   ImageSamplers,
-} from "../types/NovelAiApi";
+} from "../types/NovelAiApi/GenImage";
 
 import {
   SMEA_DYN_COSTS,

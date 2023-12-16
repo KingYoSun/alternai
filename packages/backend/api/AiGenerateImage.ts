@@ -1,4 +1,7 @@
-import { NovelAiApi } from "shared";
+import {
+  type AiGenerateImageRequest,
+  ImageSamplers,
+} from "shared/types/NovelAiApi/GenImage";
 import AdmZip from "adm-zip";
 import { type ApiResponseBody } from "shared/types/Api";
 import { Buffer } from "buffer";
@@ -12,18 +15,18 @@ const REDIS_KEY = "alternai:settings";
 
 interface Props {
   redis: RedisCli;
-  options: NovelAiApi.AiGenerateImageRequest;
+  options: AiGenerateImageRequest;
 }
 
-export default async function AiGenerateImageRequest({
+export default async function GenerateImageRequest({
   redis,
   options,
 }: Props): Promise<ApiResponseBody> {
   if (
-    options.parameters.sampler === NovelAiApi.ImageSamplers.DDIM.name &&
+    options.parameters.sampler === ImageSamplers.DDIM.name &&
     options.model === "nai-diffusion-3"
   ) {
-    options.parameters.sampler = NovelAiApi.ImageSamplers.DDIM_V3.name;
+    options.parameters.sampler = ImageSamplers.DDIM_V3.name;
   }
 
   let res: ApiResponseBody;

@@ -1,7 +1,20 @@
 import { useEffect, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { NovelAiApi, CaluculateCost } from "shared";
+import CaluculateCost from "shared/utils/CaluculateCost";
+import {
+  type ImageResolution,
+  ImageResolutions,
+  DefaultAiGenerateImageOptions,
+  DefaultAiGenerateImageParameters,
+  type AiGenerateImageRequest,
+  AiGenerateImageRequestSchema,
+  AiGenerateImageModels,
+  ImageSamplers,
+  UCPresetsEnum,
+  type UCPresets,
+  NoiseScheduleEnum,
+} from "shared/types/NovelAiApi/GenImage";
 import {
   Form,
   FormControl,
@@ -45,21 +58,18 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [base64Image, setBase64Image] = useState<string>("");
 
-  const initResoArr: NovelAiApi.ImageResolution[] =
-    NovelAiApi.ImageResolutions.filter(
-      (r) =>
-        !r.excludes.includes(NovelAiApi.DefaultAiGenerateImageOptions.model),
-    );
-  const [resoArr, setResoArr] =
-    useState<NovelAiApi.ImageResolution[]>(initResoArr);
+  const initResoArr: ImageResolution[] = ImageResolutions.filter(
+    (r) => !r.excludes.includes(DefaultAiGenerateImageOptions.model),
+  );
+  const [resoArr, setResoArr] = useState<ImageResolution[]>(initResoArr);
 
-  const optionForm = useForm<NovelAiApi.AiGenerateImageRequest>({
-    resolver: zodResolver(NovelAiApi.AiGenerateImageRequestSchema),
-    defaultValues: NovelAiApi.DefaultAiGenerateImageOptions,
+  const optionForm = useForm<AiGenerateImageRequest>({
+    resolver: zodResolver(AiGenerateImageRequestSchema),
+    defaultValues: DefaultAiGenerateImageOptions,
   });
   const watcher = optionForm.watch(["input", "model", "parameters"]);
 
-  async function onSubmit(options: NovelAiApi.AiGenerateImageRequest) {
+  async function onSubmit(options: AiGenerateImageRequest) {
     if (enableRandomSeed)
       optionForm.setValue(
         "parameters.seed",
@@ -99,7 +109,7 @@ function Home() {
   useEffect(() => {
     // load model and params
     const input = watcher[0];
-    const model = NovelAiApi.AiGenerateImageModels[watcher[1]];
+    const model = AiGenerateImageModels[watcher[1]];
     const params = watcher[2];
     if (!model) {
       setCost("err");
@@ -107,11 +117,11 @@ function Home() {
     }
 
     // caluculate const and set
-    const cost = CaluculateCost.default(true, model.version, params);
+    const cost = CaluculateCost(true, model.version, params);
     setCost(String(cost));
 
     // enable smea & dyn setting
-    const samplerObj = Object.values(NovelAiApi.ImageSamplers).find(
+    const samplerObj = Object.values(ImageSamplers).find(
       (sampler) => sampler.name === params.sampler,
     );
     const smeaEnabled = Boolean(samplerObj?.smea);
@@ -158,23 +168,21 @@ function Home() {
                     onValueChange={(val) => {
                       field.onChange(val);
                       setResoArr(
-                        NovelAiApi.ImageResolutions.filter(
+                        ImageResolutions.filter(
                           (r) => !r.excludes.includes(val),
                         ),
                       );
                     }}
                     name={field.name}
                     value={field.value}
-                    defaultValue={
-                      NovelAiApi.DefaultAiGenerateImageOptions.model
-                    }
+                    defaultValue={DefaultAiGenerateImageOptions.model}
                   >
                     <SelectTrigger className="w-60">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectGroup>
-                        {Object.values(NovelAiApi.AiGenerateImageModels)
+                        {Object.values(AiGenerateImageModels)
                           .filter(
                             (model) =>
                               !model.legacy &&
@@ -189,7 +197,7 @@ function Home() {
                       </SelectGroup>
                       <SelectGroup>
                         <SelectLabel>----Lagacy Models-----</SelectLabel>
-                        {Object.values(NovelAiApi.AiGenerateImageModels)
+                        {Object.values(AiGenerateImageModels)
                           .filter(
                             (model) =>
                               model.legacy &&
@@ -283,7 +291,7 @@ function Home() {
                       optionForm.setValue("parameters.width", resolution[0]);
                       optionForm.setValue("parameters.height", resolution[1]);
                     }}
-                    defaultValue={`[${NovelAiApi.DefaultAiGenerateImageParameters.width}, ${NovelAiApi.DefaultAiGenerateImageParameters.height}]`}
+                    defaultValue={`[${DefaultAiGenerateImageParameters.width}, ${DefaultAiGenerateImageParameters.height}]`}
                   >
                     <SelectTrigger id="resolution_select" className="w-60">
                       <SelectValue />
@@ -365,28 +373,23 @@ function Home() {
                               field.onChange(parseInt(val))
                             }
                             defaultValue={String(
-                              NovelAiApi.DefaultAiGenerateImageParameters
-                                .ucPreset,
+                              DefaultAiGenerateImageParameters.ucPreset,
                             )}
                           >
                             <SelectTrigger id="ucPreset" className="w-70">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              {Object.keys(NovelAiApi.UCPresetsEnum)
+                              {Object.keys(UCPresetsEnum)
                                 .filter(
                                   (key) =>
-                                    NovelAiApi.UCPresetsEnum[
-                                      key as keyof NovelAiApi.UCPresets
-                                    ] < 3,
+                                    UCPresetsEnum[key as keyof UCPresets] < 3,
                                 )
                                 .map((key) => (
                                   <SelectItem
                                     key={key}
                                     value={String(
-                                      NovelAiApi.UCPresetsEnum[
-                                        key as keyof NovelAiApi.UCPresets
-                                      ],
+                                      UCPresetsEnum[key as keyof UCPresets],
                                     )}
                                   >
                                     {key}
@@ -412,9 +415,7 @@ function Home() {
                     <FormControl>
                       <Slider
                         name={field.name}
-                        defaultValue={[
-                          NovelAiApi.DefaultAiGenerateImageParameters.steps,
-                        ]}
+                        defaultValue={[DefaultAiGenerateImageParameters.steps]}
                         onValueChange={(val) => field.onChange(val[0])}
                         onBlur={field.onBlur}
                         ref={field.ref}
@@ -439,9 +440,7 @@ function Home() {
                     <FormControl>
                       <Slider
                         name={field.name}
-                        defaultValue={[
-                          NovelAiApi.DefaultAiGenerateImageParameters.scale,
-                        ]}
+                        defaultValue={[DefaultAiGenerateImageParameters.scale]}
                         onValueChange={(val) => field.onChange(val[0])}
                         onBlur={field.onBlur}
                         ref={field.ref}
@@ -538,7 +537,7 @@ function Home() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={String(
-                            NovelAiApi.DefaultAiGenerateImageParameters.sampler,
+                            DefaultAiGenerateImageParameters.sampler,
                           )}
                         >
                           <SelectTrigger id="sampler" className="w-150">
@@ -547,22 +546,22 @@ function Home() {
                           <SelectContent>
                             <SelectGroup>
                               <SelectLabel>----Recommend----</SelectLabel>
-                              {Object.keys(NovelAiApi.ImageSamplers)
+                              {Object.keys(ImageSamplers)
                                 .filter((key) => {
                                   const model_key: string =
                                     WatchValueRaw("model");
                                   if (!model_key) return false;
 
                                   const model =
-                                    NovelAiApi.AiGenerateImageModels[model_key];
+                                    AiGenerateImageModels[model_key];
                                   return model.samplers_recommend.includes(
-                                    NovelAiApi.ImageSamplers[key],
+                                    ImageSamplers[key],
                                   );
                                 })
                                 .map((key) => (
                                   <SelectItem
-                                    key={NovelAiApi.ImageSamplers[key].name}
-                                    value={NovelAiApi.ImageSamplers[key].name}
+                                    key={ImageSamplers[key].name}
+                                    value={ImageSamplers[key].name}
                                   >
                                     {key}
                                   </SelectItem>
@@ -570,22 +569,22 @@ function Home() {
                             </SelectGroup>
                             <SelectGroup>
                               <SelectLabel>----Other----</SelectLabel>
-                              {Object.keys(NovelAiApi.ImageSamplers)
+                              {Object.keys(ImageSamplers)
                                 .filter((key) => {
                                   const model_key: string =
                                     WatchValueRaw("model");
                                   if (!model_key) return false;
 
                                   const model =
-                                    NovelAiApi.AiGenerateImageModels[model_key];
+                                    AiGenerateImageModels[model_key];
                                   return model.samplers.includes(
-                                    NovelAiApi.ImageSamplers[key],
+                                    ImageSamplers[key],
                                   );
                                 })
                                 .map((key) => (
                                   <SelectItem
-                                    key={NovelAiApi.ImageSamplers[key].name}
-                                    value={NovelAiApi.ImageSamplers[key].name}
+                                    key={ImageSamplers[key].name}
+                                    value={ImageSamplers[key].name}
                                   >
                                     {key}
                                   </SelectItem>
@@ -662,8 +661,7 @@ function Home() {
                       <Slider
                         name={field.name}
                         defaultValue={[
-                          NovelAiApi.DefaultAiGenerateImageParameters
-                            .uncond_scale,
+                          DefaultAiGenerateImageParameters.uncond_scale,
                         ]}
                         onValueChange={(val) => field.onChange(val[0])}
                         onBlur={field.onBlur}
@@ -691,8 +689,7 @@ function Home() {
                       <Slider
                         name={field.name}
                         defaultValue={[
-                          NovelAiApi.DefaultAiGenerateImageParameters
-                            .cfg_rescale,
+                          DefaultAiGenerateImageParameters.cfg_rescale,
                         ]}
                         onValueChange={(val) => field.onChange(val[0])}
                         onBlur={field.onBlur}
@@ -718,24 +715,21 @@ function Home() {
                         <Select
                           onValueChange={field.onChange}
                           defaultValue={
-                            NovelAiApi.DefaultAiGenerateImageParameters
-                              .noise_schedule
+                            DefaultAiGenerateImageParameters.noise_schedule
                           }
                         >
                           <SelectTrigger id="noise_schedule" className="w-200">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {Object.values(NovelAiApi.NoiseScheduleEnum).map(
-                              (val) => (
-                                <SelectItem
-                                  key={NovelAiApi.NoiseScheduleEnum[val]}
-                                  value={val}
-                                >
-                                  {NovelAiApi.NoiseScheduleEnum[val]}
-                                </SelectItem>
-                              ),
-                            )}
+                            {Object.values(NoiseScheduleEnum).map((val) => (
+                              <SelectItem
+                                key={NoiseScheduleEnum[val]}
+                                value={val}
+                              >
+                                {NoiseScheduleEnum[val]}
+                              </SelectItem>
+                            ))}
                           </SelectContent>
                         </Select>
                       </FormControl>

@@ -11,6 +11,7 @@ import { NovelAiApi, SettingsApi } from "shared";
 import cors from "cors";
 import RedisCli from "./client/redis";
 import { SettingsGetRequest, SettingsPutRequst } from "./api/Settings";
+import getUserData from "./api/UserData";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -62,6 +63,11 @@ app.get("/redis", (async (_req, res: Response) => {
   res.status(200).send("connected!");
 }) as RequestHandler);
 
+app.get("/user-data", (async (_req, res: Response) => {
+  const userDataRes = await getUserData({ redis });
+  res.status(userDataRes.status).send(userDataRes.message);
+}) as RequestHandler);
+
 app.get("/settings", (async (_req, res: Response) => {
   const body = await SettingsGetRequest({ redis });
 
@@ -85,7 +91,7 @@ app.post("/post-test", (req: Request, res: Response) => {
 });
 
 app.post("/generate-image", (async (req: Request, res: Response) => {
-  await validate(dataSchema(NovelAiApi.AiGenerateImageRequestSchema));
+  await validate(dataSchema(NovelAiApi.GenImage.AiGenerateImageRequestSchema));
   const body = await AiGenerateImageRequest({ redis, options: req.body }).catch(
     (e) => {
       res.status(500).send(e);
