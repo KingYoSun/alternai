@@ -24,10 +24,12 @@ export default class RedisCli {
   }
 
   async set({ key, value }: setProps): Promise<void> {
+    await this.init();
     await this.client.set(key, value);
   }
 
   async get(key: string): Promise<string | null> {
+    await this.init();
     const val = await this.client.get(key);
 
     return val;

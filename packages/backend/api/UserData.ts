@@ -1,6 +1,6 @@
-import type RedisCli from "../client/redis";
-import { type ApiResponseBody } from "shared/types/Api";
-import { type Settings } from "shared/types/Settings";
+import type RedisCli from "../client/redis.ts";
+import { type ApiResponseBody } from "shared/types/Api.ts";
+import { type Settings } from "shared/types/Settings.ts";
 
 const API_HOST = "https://api.novelai.net";
 const REDIS_KEY = "alternai:settings";
@@ -14,7 +14,6 @@ export default async function getUserData({
 }: Props): Promise<ApiResponseBody> {
   const endpoint = "/user/data";
 
-  await redis.init();
   const settings = await redis.get(REDIS_KEY);
 
   if (settings === null)

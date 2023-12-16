@@ -5,13 +5,15 @@ import express, {
   type RequestHandler,
 } from "express";
 import bodyParser from "body-parser";
-import AiGenerateImageRequest from "./api/AiGenerateImage";
+import AiGenerateImageRequest from "./api/AiGenerateImage.ts";
 import { z, type AnyZodObject } from "zod";
-import { NovelAiApi, SettingsApi } from "shared";
 import cors from "cors";
-import RedisCli from "./client/redis";
-import { SettingsGetRequest, SettingsPutRequst } from "./api/Settings";
-import getUserData from "./api/UserData";
+import RedisCli from "./client/redis.ts";
+import { SettingsGetRequest, SettingsPutRequst } from "./api/Settings.ts";
+import getUserData from "./api/UserData.ts";
+import NextcloudCli from "./client/nextcloud/index.ts";
+import { SettingsRequestSchema } from "shared/types/Settings.ts";
+import { AiGenerateImageRequestSchema } from "shared/types/NovelAiApi/GenImage.ts";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -75,7 +77,7 @@ app.get("/settings", (async (_req, res: Response) => {
 }) as RequestHandler);
 
 app.put("/settings", (async (req: Request, res: Response) => {
-  await validate(dataSchema(SettingsApi.SettingsRequestSchema));
+  await validate(dataSchema(SettingsRequestSchema));
   const body = await SettingsPutRequst({ redis, settings: req.body });
 
   if (body != null) {
@@ -91,7 +93,7 @@ app.post("/post-test", (req: Request, res: Response) => {
 });
 
 app.post("/generate-image", (async (req: Request, res: Response) => {
-  await validate(dataSchema(NovelAiApi.GenImage.AiGenerateImageRequestSchema));
+  await validate(dataSchema(AiGenerateImageRequestSchema));
   const body = await AiGenerateImageRequest({ redis, options: req.body }).catch(
     (e) => {
       res.status(500).send(e);
@@ -102,6 +104,16 @@ app.post("/generate-image", (async (req: Request, res: Response) => {
     res.status(body.status).send(body.message);
   } else {
     res.status(500).send("response body is null");
+  }
+}) as RequestHandler);
+
+app.get("/nextcloud", (async (_req, res: Response) => {
+  try {
+    const cli = new NextcloudCli({ redis });
+    await cli.init();
+    res.status(200).send("Nextcloud is connected");
+  } catch (e) {
+    res.status(500).send(JSON.stringify(e));
   }
 }) as RequestHandler);
 

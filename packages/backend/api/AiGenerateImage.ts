@@ -1,12 +1,12 @@
 import {
   type AiGenerateImageRequest,
   ImageSamplers,
-} from "shared/types/NovelAiApi/GenImage";
+} from "shared/types/NovelAiApi/GenImage.ts";
 import AdmZip from "adm-zip";
-import { type ApiResponseBody } from "shared/types/Api";
+import { type ApiResponseBody } from "shared/types/Api.ts";
 import { Buffer } from "buffer";
-import type RedisCli from "../client/redis";
-import { type Settings } from "shared/types/Settings";
+import type RedisCli from "../client/redis.ts";
+import { type Settings } from "shared/types/Settings.ts";
 
 const API_HOST = "https://api.novelai.net";
 const MAX_FILENAME_LEN = 50;
@@ -31,7 +31,6 @@ export default async function GenerateImageRequest({
 
   let res: ApiResponseBody;
 
-  await redis.init();
   const settings = await redis.get(REDIS_KEY);
 
   if (settings === null)

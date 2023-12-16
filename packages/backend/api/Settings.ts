@@ -1,6 +1,6 @@
-import { type ApiResponseBody } from "shared/types/Api";
-import type RedisCli from "../client/redis";
-import { type Settings } from "shared/types/Settings";
+import { type ApiResponseBody } from "shared/types/Api.ts";
+import type RedisCli from "../client/redis.ts";
+import { type Settings } from "shared/types/Settings.ts";
 
 const REDIS_KEY = "alternai:settings";
 
@@ -11,7 +11,6 @@ interface GetProps {
 export async function SettingsGetRequest({
   redis,
 }: GetProps): Promise<ApiResponseBody> {
-  await redis.init();
   const settings = await redis.get(REDIS_KEY);
 
   const res: ApiResponseBody = {
@@ -33,8 +32,6 @@ export async function SettingsPutRequst({
 }: PutProps): Promise<ApiResponseBody> {
   let res!: ApiResponseBody;
   try {
-    await redis.init();
-
     const existSettings = await redis.get(REDIS_KEY);
 
     let updateSettings!: Settings;
