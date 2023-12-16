@@ -20,6 +20,7 @@ import { UserDataContext } from "@/contexts/user-data";
 import { UserAccountDataResponse } from "shared/types/NovelAiApi/UserData";
 import { Button } from "./ui/button";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Loader2 } from "lucide-react";
 
 const RadixLink = (props: RadixLinkProps) => {
   return (
@@ -41,9 +42,11 @@ const backendHost = import.meta.env.VITE_BACKEND_HOST;
 function CustomHeader({ currentPath }: HeaderProps) {
   const { userData, dispatchUserData } = useContext(UserDataContext);
   const [fetchFailed, setFetchFailed] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     (async () => {
+      setLoading(true);
       const res = await fetch(`${backendHost}/user-data`);
       if (res.status !== 200) {
         setFetchFailed(true);
@@ -58,6 +61,7 @@ function CustomHeader({ currentPath }: HeaderProps) {
         });
         setFetchFailed(false);
       }
+      setLoading(false);
     })();
   }, [dispatchUserData]);
 
@@ -94,7 +98,12 @@ function CustomHeader({ currentPath }: HeaderProps) {
       >
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="secondary">
+            <Button variant="secondary" disabled={loading}>
+              {loading ? (
+                <Loader2 className={cn("mr-2 h-4 w-4 animate-spin")} />
+              ) : (
+                ""
+              )}
               Anlas:{" "}
               {fetchFailed
                 ? "FetchFailed"

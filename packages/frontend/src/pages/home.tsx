@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useContext } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CaluculateCost from "shared/utils/CaluculateCost";
@@ -44,6 +44,8 @@ import Tokenizer from "@/lib/Tokenizer";
 import FooterBtn from "@/components/footer-btn";
 import { Image } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { UserDataContext } from "@/contexts/user-data";
+import { UserAccountDataResponse } from "shared/types/NovelAiApi/UserData";
 
 const MAX_TOKEN_SIZE = 225;
 
@@ -57,6 +59,7 @@ function Home() {
   const [enableRandomSeed, setEnableRandomSeed] = useState(true);
   const [loading, setLoading] = useState(false);
   const [base64Image, setBase64Image] = useState<string>("");
+  const userDataContext = useContext(UserDataContext);
 
   const initResoArr: ImageResolution[] = ImageResolutions.filter(
     (r) => !r.excludes.includes(DefaultAiGenerateImageOptions.model),
@@ -93,6 +96,22 @@ function Home() {
     } else {
       setRes("error: ");
     }
+
+    if (Number(cost) > 0) {
+      const res = await fetch(`${backendHost}/user-data`);
+      if (res.status !== 200) {
+        console.log(
+          `Fetch UserData failed: ${res.status}: ${await res.text()}`,
+        );
+      } else {
+        const data: UserAccountDataResponse = await res.json();
+        userDataContext.dispatchUserData({
+          type: "set",
+          payload: data,
+        });
+      }
+    }
+
     setLoading(false);
   }
 
