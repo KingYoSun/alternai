@@ -27,7 +27,6 @@ const validate =
     res: Response,
     next: NextFunction,
   ): Promise<Response | undefined> => {
-    console.log("validation start");
     try {
       await schema.passthrough().parseAsync({
         body: req.body,
@@ -88,7 +87,6 @@ app.put("/settings", (async (req: Request, res: Response) => {
 }) as RequestHandler);
 
 app.post("/post-test", (req: Request, res: Response) => {
-  console.log(`PostTest!: ${JSON.stringify(req.body)}`);
   res.send(`Received: ${JSON.stringify(req.body)}`);
 });
 

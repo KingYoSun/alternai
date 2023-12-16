@@ -43,7 +43,6 @@ export async function SettingsPutRequst({
       updateSettings = { ...settings };
     }
 
-    console.log(`settings: ${JSON.stringify(updateSettings)}`);
     await redis.set({ key: REDIS_KEY, value: JSON.stringify(updateSettings) });
 
     res = {
