@@ -1,4 +1,4 @@
-import { useEffect, useState, useContext } from "react";
+import { useEffect, useState, useContext, useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import CaluculateCost from "shared/utils/CaluculateCost";
@@ -40,7 +40,7 @@ import { cn } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import Tokenizer from "@/lib/Tokenizer";
+import Tokenizer, { Tokenized } from "@/lib/Tokenizer";
 import FooterBtn from "@/components/footer-btn";
 import { Image } from "lucide-react";
 import { Loader2 } from "lucide-react";
@@ -60,6 +60,12 @@ function Home() {
   const [loading, setLoading] = useState(false);
   const [base64Image, setBase64Image] = useState<string>("");
   const userDataContext = useContext(UserDataContext);
+
+  const tokenizer = useMemo(() => {
+    const cli = new Tokenizer();
+    cli.init();
+    return cli;
+  }, []);
 
   const initResoArr: ImageResolution[] = ImageResolutions.filter(
     (r) => !r.excludes.includes(DefaultAiGenerateImageOptions.model),
@@ -151,26 +157,29 @@ function Home() {
 
     // tokenize prompts
     // token size is 2 when empty input
-    Tokenizer(input).then((tokenized) => {
-      setPosTokenSize(
-        tokenized.input_ids.size - 2 + (params.qualityToggle ? 5 : 0),
-      );
-    });
-    Tokenizer(params.negative_prompt).then((tokenized) => {
-      let additionalTokens = 0;
-      switch (params.ucPreset) {
-        case 0:
-          additionalTokens = 48;
-          break;
-        case 1:
-          additionalTokens = 31;
-          break;
-        default:
-          additionalTokens = 0;
-      }
-      setNegTokenSize(tokenized.input_ids.size - 2 + additionalTokens);
-    });
-  }, [watcher]);
+    if (tokenizer.downloaded) {
+      tokenizer.tokenize(input).then((input_ids: Tokenized) => {
+        setPosTokenSize(input_ids.size + (params.qualityToggle ? 10 : 0));
+      });
+
+      tokenizer
+        .tokenize(params.negative_prompt)
+        .then((input_ids: Tokenized) => {
+          let additionalTokens = 0;
+          switch (params.ucPreset) {
+            case 0:
+              additionalTokens = 48;
+              break;
+            case 1:
+              additionalTokens = 18;
+              break;
+            default:
+              additionalTokens = 0;
+          }
+          setNegTokenSize(input_ids.size + additionalTokens);
+        });
+    }
+  }, [watcher, tokenizer]);
 
   return (
     <div className={cn("w-full z-11")}>
