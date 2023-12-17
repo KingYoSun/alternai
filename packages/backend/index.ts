@@ -115,6 +115,40 @@ app.get("/nextcloud", (async (_req, res: Response) => {
   }
 }) as RequestHandler);
 
+app.get("/nextcloud/exists", (async (_req, res: Response) => {
+  try {
+    const cli = new NextcloudCli({ redis });
+    await cli.init();
+    const path = "/alternai/test";
+    const isExists = await cli.exists(path);
+    res.status(200).send(`${path} ${isExists ? "is" : "is not"} exist.`);
+  } catch (e) {
+    res.status(500).send(JSON.stringify(e));
+  }
+}) as RequestHandler);
+
+app.get("/nextcloud/files", (async (_req, res: Response) => {
+  try {
+    const cli = new NextcloudCli({ redis });
+    await cli.init();
+    const contents = await cli.getDirectoryContents();
+    res.status(200).send(JSON.stringify(contents.map((c) => c.filename)));
+  } catch (e) {
+    res.status(500).send(JSON.stringify(e));
+  }
+}) as RequestHandler);
+
+app.get("/nextcloud/getUserInfo", (async (_req, res: Response) => {
+  try {
+    const cli = new NextcloudCli({ redis });
+    await cli.init();
+    const contents = await cli.getUserInfo();
+    res.status(200).send(JSON.stringify(contents));
+  } catch (e) {
+    res.status(500).send(JSON.stringify(e));
+  }
+}) as RequestHandler);
+
 app.listen(port, () => {
   console.log(`Express app is listening on port ${port}`);
 });
