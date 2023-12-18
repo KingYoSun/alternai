@@ -3,10 +3,11 @@ import {
   ImageSamplers,
 } from "shared/types/NovelAiApi/GenImage.ts";
 import AdmZip from "adm-zip";
-import { type ApiResponseBody } from "shared/types/Api.ts";
+import { type SaveOptions, type ApiResponseBody } from "shared/types/Api.ts";
 import { Buffer } from "buffer";
 import type RedisCli from "../client/redis.ts";
 import { type Settings } from "shared/types/Settings.ts";
+import type NextcloudCli from "../client/nextcloud/index.ts";
 
 const API_HOST = "https://api.novelai.net";
 const MAX_FILENAME_LEN = 50;
@@ -15,11 +16,15 @@ const REDIS_KEY = "alternai:settings";
 
 interface Props {
   redis: RedisCli;
+  nextcloud: NextcloudCli;
+  saveOptions?: SaveOptions;
   options: AiGenerateImageRequest;
 }
 
 export default async function GenerateImageRequest({
   redis,
+  nextcloud,
+  saveOptions,
   options,
 }: Props): Promise<ApiResponseBody> {
   if (
@@ -73,22 +78,36 @@ export default async function GenerateImageRequest({
 
   let base64Image!: string;
   await Promise.all(
-    entries.map((entry, index) => {
+    entries.map(async (entry, index) => {
       const newFilename = `${baseFilename}_${index}_${new Date().getTime()}.png`;
-      zip.extractEntryTo(
-        entry.name,
-        "/output/",
-        false,
-        true,
-        false,
-        newFilename,
-      );
+
+      if (saveOptions?.local === true) {
+        zip.extractEntryTo(
+          entry.name,
+          "/output/",
+          false,
+          true,
+          false,
+          newFilename,
+        );
+      }
 
       const imageBuff = zip.readFile(entry);
       if (imageBuff === null) return "failed";
 
-      base64Image = "data:image/png;base64," + imageBuff.toString("base64");
-      return "succeeded";
+      if (saveOptions?.autoSave === true) {
+        const pathPrefix = "/files/kingyosun";
+        await nextcloud.webdavCli.putFileContents(
+          `${pathPrefix}${parsed.NEXTCLOUD_LOC}${newFilename}`,
+          imageBuff,
+          {
+            overwrite: true,
+          },
+        );
+      } else {
+        base64Image = "data:image/png;base64," + imageBuff.toString("base64");
+        return "succeeded";
+      }
     }),
   );
 

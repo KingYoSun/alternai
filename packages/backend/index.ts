@@ -14,6 +14,7 @@ import getUserData from "./api/UserData.ts";
 import NextcloudCli from "./client/nextcloud/index.ts";
 import { SettingsRequestSchema } from "shared/types/Settings.ts";
 import { AiGenerateImageRequestSchema } from "shared/types/NovelAiApi/GenImage.ts";
+import { type SaveOptions } from "shared/types/Api.ts";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -24,7 +25,7 @@ const validate =
   async (schema: AnyZodObject) =>
   async (
     req: Request,
-    res: Response,
+    _res: Response,
     next: NextFunction,
   ): Promise<Response | undefined> => {
     try {
@@ -41,6 +42,9 @@ const validate =
 
 const redis = new RedisCli();
 const nextcloud = new NextcloudCli({ redis });
+
+await redis.init();
+await nextcloud.init();
 
 const app: express.Express = express();
 const port = 8090;
@@ -59,11 +63,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.get("/", (_req, res: Response) => {
   res.send("Status is Healthy");
 });
-
-app.get("/redis", (async (_req, res: Response) => {
-  await new RedisCli().init();
-  res.status(200).send("connected!");
-}) as RequestHandler);
 
 app.get("/user-data", (async (_req, res: Response) => {
   const userDataRes = await getUserData({ redis });
@@ -93,11 +92,18 @@ app.post("/post-test", (req: Request, res: Response) => {
 
 app.post("/generate-image", (async (req: Request, res: Response) => {
   await validate(dataSchema(AiGenerateImageRequestSchema));
-  const body = await AiGenerateImageRequest({ redis, options: req.body }).catch(
-    (e) => {
-      res.status(500).send(e);
-    },
-  );
+  const saveOptions: SaveOptions = {
+    autoSave: false,
+    local: false,
+  };
+  const body = await AiGenerateImageRequest({
+    redis,
+    nextcloud,
+    saveOptions,
+    options: req.body,
+  }).catch((e) => {
+    res.status(500).send(e);
+  });
 
   if (body != null) {
     res.status(body.status).send(body.message);
@@ -108,7 +114,6 @@ app.post("/generate-image", (async (req: Request, res: Response) => {
 
 app.get("/nextcloud", (async (_req, res: Response) => {
   try {
-    await nextcloud.init();
     res.status(200).send("Nextcloud is connected");
   } catch (e) {
     res.status(500).send(JSON.stringify(e));
@@ -117,7 +122,6 @@ app.get("/nextcloud", (async (_req, res: Response) => {
 
 app.get("/nextcloud/exists", (async (_req, res: Response) => {
   try {
-    await nextcloud.init();
     const path = "/alternai/test";
     const isExists = await nextcloud.exists(path);
     res.status(200).send(`${path} ${isExists ? "is" : "is not"} exist.`);
@@ -128,7 +132,6 @@ app.get("/nextcloud/exists", (async (_req, res: Response) => {
 
 app.get("/nextcloud/files", (async (_req, res: Response) => {
   try {
-    await nextcloud.init();
     const contents = await nextcloud.getDirectoryContents();
     res.status(200).send(JSON.stringify(contents.map((c) => c.filename)));
   } catch (e) {
@@ -138,7 +141,6 @@ app.get("/nextcloud/files", (async (_req, res: Response) => {
 
 app.get("/nextcloud/getUserInfo", (async (_req, res: Response) => {
   try {
-    await nextcloud.init();
     const contents = await nextcloud.getUserInfo();
     res.status(200).send(JSON.stringify(contents));
   } catch (e) {

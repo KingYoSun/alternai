@@ -5,6 +5,7 @@ export const SettingsRequestSchema = z.object({
   NEXTCLOUD_URL: z.string().optional(),
   NEXTCLOUD_USER: z.string().optional(),
   NEXTCLOUD_PASS: z.string().optional(),
+  NEXTCLOUD_LOC: z.string().optional(),
 });
 
 export type Settings = z.infer<typeof SettingsRequestSchema>;
@@ -14,4 +15,5 @@ export const DefaultSettings: Settings = {
   NEXTCLOUD_URL: "",
   NEXTCLOUD_USER: "",
   NEXTCLOUD_PASS: "",
+  NEXTCLOUD_LOC: "/",
 };

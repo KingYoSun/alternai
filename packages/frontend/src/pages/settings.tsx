@@ -63,6 +63,7 @@ export default function Settings() {
       }
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
@@ -117,6 +118,19 @@ export default function Settings() {
                 <FormLabel>NEXTCLOUD PASSWORD</FormLabel>
                 <FormControl>
                   <Input type="password" disabled={loading} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={settingsForm.control}
+            name="NEXTCLOUD_LOC"
+            render={({ field }) => (
+              <FormItem className={cn("max-w-[600px]")}>
+                <FormLabel>NEXTCLOUD SAVE LOCATION</FormLabel>
+                <FormControl>
+                  <Input disabled={loading} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
