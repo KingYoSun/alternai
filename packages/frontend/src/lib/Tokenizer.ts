@@ -12,7 +12,7 @@ export interface Tokenized {
 }
 
 // https://huggingface.co/docs/transformers.js/api/models#module_models.CLIPTextModelWithProjection
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export default class TokenizerCli {
   tokenizer!: PreTrainedTokenizer;
   model: string;
