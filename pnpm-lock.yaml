@@ -110,8 +110,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(@types/react-dom@18.2.18)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)
       '@xenova/transformers':
-        specifier: ^2.10.1
-        version: 2.10.1
+        specifier: ^2.11.0
+        version: 2.11.0
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1962,8 +1962,8 @@ packages:
       - '@swc/helpers'
     dev: true
 
-  /@xenova/transformers@2.10.1:
-    resolution: {integrity: sha512-vUCU3rKEcuH0dSuJzXuESbUPziqh8FvjLVikUh//5SWGcwfdccIfTUhDsS1obbrUTW3ve0CHeJvHnHbk0QTzEA==}
+  /@xenova/transformers@2.11.0:
+    resolution: {integrity: sha512-i/oaTbVJI+pbkWiUZydmaGFlSh3167N+gimkIJBlHf150wQWffwGE9dPttLsS9cLlmty95Z1MkVQmibl/j7bSg==}
     dependencies:
       onnxruntime-web: 1.14.0
       sharp: 0.32.6
