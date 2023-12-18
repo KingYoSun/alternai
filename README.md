@@ -17,7 +17,6 @@ Alternative NovelAI image generator
   git clone https://github.com/KingYoSun/alternai.git
   cd alternai
   mkdir output
-  mkdir -p data/redis
   cp .env.default .env
   docker compose up --build -d
 ```

@@ -49,4 +49,7 @@ services:
       retries: 8
       start_period: 5s
     volumes:
-      - "./data/redis:/data"
+      - redis:/data
+volumes:
+  redis:
+    driver: local

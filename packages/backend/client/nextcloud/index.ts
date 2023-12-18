@@ -46,7 +46,7 @@ export default class NextcloudCli {
 
   async getSettings(): Promise<Settings> {
     const res = await this.redis.get(REDIS_SETTING_KEY);
-    if (res === null) throw new Error("Settings are not found");
+    if (res === null) return {};
 
     return JSON.parse(res);
   }
