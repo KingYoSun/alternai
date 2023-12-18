@@ -62,6 +62,7 @@ Alternative NovelAI image generator
 - [tailwindcss](https://tailwindcss.com/docs/installation)
 - [Lucide Icons](https://lucide.dev/icons/)
 - [React Hook Form](https://react-hook-form.com/docs)
+- [React Router](https://reactrouter.com/en/main)
 
 ## License
 
