@@ -1,6 +1,6 @@
 import type RedisCli from "../redis.ts";
 import { type Settings } from "shared/types/Settings.ts";
-import { type DiskQuota, createClient, type FileStat } from "webdav";
+import { createClient, type FileStat, type WebDAVClient } from "webdav";
 import parseXml from "xml-js";
 
 interface classProps {
@@ -13,7 +13,7 @@ export default class NextcloudCli {
   redis: RedisCli;
   settings: Settings;
   connected: boolean;
-  webdavCli: any;
+  webdavCli: WebDAVClient;
   webdavSuffix: string;
 
   constructor({ redis }: classProps) {
@@ -38,8 +38,7 @@ export default class NextcloudCli {
           password: this.settings.NEXTCLOUD_PASS,
         },
       );
-      const quata = await this.getQuota();
-      this.connected = Boolean(quata);
+      this.connected = true;
     } else {
       this.connected = false;
     }
@@ -52,11 +51,6 @@ export default class NextcloudCli {
     return JSON.parse(res);
   }
 
-  async getQuota(): Promise<DiskQuota> {
-    const quata: DiskQuota = await this.webdavCli.getQuota();
-    return quata;
-  }
-
   async exists(path: string): Promise<boolean> {
     const res: boolean = await this.webdavCli.exists(path);
     return res;
@@ -64,9 +58,12 @@ export default class NextcloudCli {
 
   async getDirectoryContents(): Promise<FileStat[]> {
     const path = `/files/${this.settings.NEXTCLOUD_USER}`;
-    const contents: FileStat[] =
-      await this.webdavCli.getDirectoryContents(path);
-    return contents;
+    const contents = await this.webdavCli.getDirectoryContents(path);
+    if (Array.isArray(contents)) {
+      return contents;
+    } else {
+      return contents.data;
+    }
   }
 
   async getUserInfo(): Promise<any> {

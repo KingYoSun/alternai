@@ -40,6 +40,7 @@ const validate =
   };
 
 const redis = new RedisCli();
+const nextcloud = new NextcloudCli({ redis });
 
 const app: express.Express = express();
 const port = 8090;
@@ -107,8 +108,7 @@ app.post("/generate-image", (async (req: Request, res: Response) => {
 
 app.get("/nextcloud", (async (_req, res: Response) => {
   try {
-    const cli = new NextcloudCli({ redis });
-    await cli.init();
+    await nextcloud.init();
     res.status(200).send("Nextcloud is connected");
   } catch (e) {
     res.status(500).send(JSON.stringify(e));
@@ -117,10 +117,9 @@ app.get("/nextcloud", (async (_req, res: Response) => {
 
 app.get("/nextcloud/exists", (async (_req, res: Response) => {
   try {
-    const cli = new NextcloudCli({ redis });
-    await cli.init();
+    await nextcloud.init();
     const path = "/alternai/test";
-    const isExists = await cli.exists(path);
+    const isExists = await nextcloud.exists(path);
     res.status(200).send(`${path} ${isExists ? "is" : "is not"} exist.`);
   } catch (e) {
     res.status(500).send(JSON.stringify(e));
@@ -129,9 +128,8 @@ app.get("/nextcloud/exists", (async (_req, res: Response) => {
 
 app.get("/nextcloud/files", (async (_req, res: Response) => {
   try {
-    const cli = new NextcloudCli({ redis });
-    await cli.init();
-    const contents = await cli.getDirectoryContents();
+    await nextcloud.init();
+    const contents = await nextcloud.getDirectoryContents();
     res.status(200).send(JSON.stringify(contents.map((c) => c.filename)));
   } catch (e) {
     res.status(500).send(JSON.stringify(e));
@@ -140,9 +138,8 @@ app.get("/nextcloud/files", (async (_req, res: Response) => {
 
 app.get("/nextcloud/getUserInfo", (async (_req, res: Response) => {
   try {
-    const cli = new NextcloudCli({ redis });
-    await cli.init();
-    const contents = await cli.getUserInfo();
+    await nextcloud.init();
+    const contents = await nextcloud.getUserInfo();
     res.status(200).send(JSON.stringify(contents));
   } catch (e) {
     res.status(500).send(JSON.stringify(e));
