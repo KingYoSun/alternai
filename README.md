@@ -21,6 +21,14 @@ Alternative NovelAI image generator
   docker compose up --build -d
 ```
 
+## Migration
+
+### Generate Migration
+
+`pnpm backend run db:migrate`
+
+- Migration is performed each time backend is executed
+
 ## Features
 
 - Light/dark mode toggle
