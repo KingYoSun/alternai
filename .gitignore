@@ -4,3 +4,4 @@ dist/
 output/*.*
 sample_options.json
 data/*
+danbooru/*
