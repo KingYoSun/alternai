@@ -15,6 +15,7 @@ import NextcloudCli from "./client/nextcloud/index.ts";
 import { SettingsRequestSchema } from "shared/types/Settings.ts";
 import { AiGenerateImageRequestSchema } from "shared/types/NovelAiApi/GenImage.ts";
 import { type SaveOptions } from "shared/types/Api.ts";
+import MySQLCli from "./client/mysql.ts";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -40,11 +41,17 @@ const validate =
     }
   };
 
+const mysql = new MySQLCli();
 const redis = new RedisCli();
 const nextcloud = new NextcloudCli({ redis });
 
-await redis.init();
-await nextcloud.init();
+await Promise.all([
+  mysql.migrate(),
+  (async () => {
+    await redis.init();
+    await nextcloud.init();
+  })(),
+]);
 
 const app: express.Express = express();
 const port = 8090;

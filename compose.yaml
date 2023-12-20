@@ -6,7 +6,7 @@ services:
       context: .
       target: backend
       dockerfile: Dockerfile.dev
-    image: autonai-backend:latest
+    image: alternai-backend:latest
     env_file:
       - .env
     ports:
@@ -23,12 +23,14 @@ services:
     depends_on:
       redis:
         condition: service_healthy
+      mysql:
+        condition: service_healthy
   frontend:
     build:
       context: .
       target: frontend
       dockerfile: Dockerfile.dev
-    image: autonai-frontend:latest
+    image: alternai-frontend:latest
     env_file:
       - .env
     ports:
@@ -39,7 +41,7 @@ services:
       backend:
         condition: service_healthy
   redis:
-    image: "redis:latest"
+    image: redis:7.2.3-alpine
     ports:
       - "6379:6379"
     healthcheck:
@@ -50,6 +52,23 @@ services:
       start_period: 5s
     volumes:
       - redis:/data
+  mysql:
+    image: mysql:8.0.35-debian
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 8s
+      retries: 8
+      start_period: 5s
+    volumes:
+      - mysql:/var/lib/mysql
+      - ./my.cnf:/etc/mysql/conf.d/my.cnf
 volumes:
   redis:
+    driver: local
+  mysql:
     driver: local
