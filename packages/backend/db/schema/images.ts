@@ -10,8 +10,8 @@ import {
   boolean,
   json,
   int,
-  date,
   index,
+  datetime,
 } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
@@ -22,7 +22,7 @@ export const images = mysqlTable(
     name: varchar("name", { length: 255 }).notNull(),
     storage: mysqlEnum("storage", ["local", "nextcloud"]),
     path: varchar("path", { length: 255 }).notNull(),
-    createdAt: date("created_at"),
+    createdAt: datetime("created_at"),
   },
   (images) => ({
     storagePathIndex: uniqueIndex("storage_path_idx").on(
@@ -84,12 +84,14 @@ export const tags = mysqlTable(
     isLocked: boolean("is_locked").default(false),
     isDeprecated: boolean("is_deprecated").default(false),
     words: json("words"),
-    createdAt: date("created_at"),
-    updatedAt: date("updated_at"),
+    createdAt: datetime("created_at"),
+    updatedAt: datetime("updated_at"),
   },
   (tags) => ({
     nameIndex: uniqueIndex("name_idx").on(tags.name),
     categoryIndex: index("category_idx").on(tags.category),
+    updatedAtIndex: index("updated_at").on(tags.updatedAt),
+    postCount: index("post_count").on(tags.postCount),
   }),
 );
 
@@ -195,6 +197,6 @@ export const wikiPages = mysqlTable("wiki_pages", {
   otherNames: json("other_names"),
   isDeleted: boolean("is_deleted").default(false),
   locked: boolean("locked").default(false),
-  createdAt: date("created_at"),
-  updatedAt: date("updated_at"),
+  createdAt: datetime("created_at"),
+  updatedAt: datetime("updated_at"),
 });

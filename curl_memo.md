@@ -6,9 +6,14 @@
 - help:api read requests: https://danbooru.donmai.us/wiki_pages/help%3Aapi_read_requests#dtext-external-links
 - hepl:chaining syntax: https://danbooru.donmai.us/wiki_pages/help%3Achaining_syntax
 
-### command sample
+### command
+
+- `pnpm backend run danb:tags`
+
+### curl sample
 
 - `curl --globoff -u $username:$apikey -H "Content-Type:applicatio/x-www-form-urlencoded" 'https://danbooru.donmai.us/wiki_pages.json?search[is_deleted]=false&search[order]=id&limit=1&page=1'`
+- `curl --globoff -u $username:$apikey -H "Content-Type:applicatio/x-www-form-urlencoded" 'https://danbooru.donmai.us/tags.json?search[order]=id&limit=1&page=2'`
 
 ### danbooru wiki取得とDB構築設計
 

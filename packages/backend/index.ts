@@ -16,6 +16,8 @@ import { SettingsRequestSchema } from "shared/types/Settings.ts";
 import { AiGenerateImageRequestSchema } from "shared/types/NovelAiApi/GenImage.ts";
 import { type SaveOptions } from "shared/types/Api.ts";
 import MySQLCli from "./client/mysql.ts";
+import DanbTags from "./api/danbooru/tags.ts";
+import schedule from "node-schedule";
 
 const dataSchema = (schema): any =>
   z.object({
@@ -154,6 +156,26 @@ app.get("/nextcloud/getUserInfo", (async (_req, res: Response) => {
     res.status(500).send(JSON.stringify(e));
   }
 }) as RequestHandler);
+
+app.get("/band/tags/reset", (async (_req, res: Response) => {
+  try {
+    await redis.set({ key: "banb:tags:lastPage", value: "1" });
+    res.status(200).send("banb:tags:lastPage is reset");
+  } catch (e) {
+    res.status(200).send(JSON.stringify(e));
+  }
+}) as RequestHandler);
+
+schedule.scheduleJob("0 * * * *", async function () {
+  console.log("DanbTags Start");
+  try {
+    const res = await DanbTags(redis, mysql, true, 4);
+    if (res.status !== 200) throw new Error(res.message);
+    console.log("DanbTags finished");
+  } catch (e) {
+    console.log(e);
+  }
+});
 
 app.listen(port, () => {
   console.log(`Express app is listening on port ${port}`);

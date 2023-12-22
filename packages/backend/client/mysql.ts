@@ -20,6 +20,5 @@ export default class MySQLCli {
 
   async migrate(): Promise<void> {
     await migrate(this.client, { migrationsFolder: "./drizzle" });
-    this.connection.end();
   }
 }
