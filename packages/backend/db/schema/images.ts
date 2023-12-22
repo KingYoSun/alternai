@@ -8,6 +8,9 @@ import {
   primaryKey,
   text,
   boolean,
+  json,
+  int,
+  date,
 } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
@@ -18,6 +21,7 @@ export const images = mysqlTable(
     name: varchar("name", { length: 255 }).notNull(),
     storage: mysqlEnum("storage", ["local", "nextcloud"]),
     path: varchar("path", { length: 255 }).notNull(),
+    createdAt: date("created_at"),
   },
   (images) => ({
     storagePathIndex: uniqueIndex("storage_path_idx").on(
@@ -39,11 +43,11 @@ export const categories = mysqlTable(
 );
 
 export const categoryRelations = relations(categories, ({ many }) => ({
-  tags: many(tags),
+  tags: many(tagGroups),
 }));
 
-export const tags = mysqlTable(
-  "tags",
+export const tagGroups = mysqlTable(
+  "tag_groups",
   {
     id: serial("id").primaryKey(),
     name: varchar("name", { length: 255 }).notNull(),
@@ -51,54 +55,70 @@ export const tags = mysqlTable(
       .notNull()
       .references(() => categories.id),
   },
+  (tagGroups) => ({
+    nameIndex: uniqueIndex("name_idx").on(tagGroups.name),
+  }),
+);
+
+export const tagGroupsRelations = relations(tagGroups, ({ one }) => ({
+  category: one(categories, {
+    fields: [tagGroups.categoryId],
+    references: [categories.id],
+  }),
+}));
+
+export const tags = mysqlTable(
+  "tags",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name", { length: 255 }).notNull(),
+    category: mysqlEnum("category", [
+      "General",
+      "Artist",
+      "Copyright",
+      "Character",
+      "Meta",
+    ]),
+    postCount: int("post_count"),
+    isLocked: boolean("is_locked").default(false),
+    isDeprecated: boolean("is_deprecated").default(false),
+    words: json("words"),
+    createdAt: date("created_at"),
+    updatedAt: date("updated_at"),
+  },
   (tags) => ({
     nameIndex: uniqueIndex("name_idx").on(tags.name),
   }),
 );
 
-export const tagsRelations = relations(tags, ({ one }) => ({
-  category: one(categories, {
-    fields: [tags.categoryId],
-    references: [categories.id],
-  }),
-}));
-
-export const keywords = mysqlTable(
-  "keywords",
+export const tagsToTagGroups = mysqlTable(
+  "tags_to_tag_groups",
   {
-    id: serial("id").primaryKey(),
-    name: varchar("name", { length: 255 }).notNull(),
-  },
-  (keywords) => ({
-    nameIndex: uniqueIndex("name_idx").on(keywords.name),
-  }),
-);
-
-export const keywordsToTags = mysqlTable(
-  "keywords_to_tags",
-  {
-    keywordId: bigint("keyword_id", { mode: "number", unsigned: true })
-      .notNull()
-      .references(() => keywords.id),
     tagId: bigint("tag_id", { mode: "number", unsigned: true })
+      .notNull()
+      .references(() => tags.id),
+    tagGroupId: bigint("tag_group_id", { mode: "number", unsigned: true })
       .notNull()
       .references(() => tags.id),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.keywordId, t.tagId] }),
+    pk: primaryKey({ columns: [t.tagId, t.tagGroupId] }),
   }),
 );
 
-export const keywordsToTagsRelations = relations(keywordsToTags, ({ one }) => ({
-  tag: one(tags, {
-    fields: [keywordsToTags.tagId],
-    references: [tags.id],
+export const tagsToTagGroupsRelations = relations(
+  tagsToTagGroups,
+  ({ one }) => ({
+    tagGroup: one(tagGroups, {
+      fields: [tagsToTagGroups.tagGroupId],
+      references: [tagGroups.id],
+    }),
+    tag: one(tags, {
+      fields: [tagsToTagGroups.tagId],
+      references: [tags.id],
+    }),
   }),
-  keyword: one(keywords, {
-    fields: [keywordsToTags.keywordId],
-    references: [keywords.id],
-  }),
-}));
+);
 
 export const prompts = mysqlTable(
   "prompts",
@@ -113,60 +133,65 @@ export const prompts = mysqlTable(
   }),
 );
 
-export const promptsToKeywords = mysqlTable(
-  "prompts_to_keywords",
+export const promptsToTags = mysqlTable(
+  "prompts_to_tags",
   {
     promptId: bigint("prompt_id", { mode: "number", unsigned: true })
       .notNull()
       .references(() => prompts.id),
-    keywordId: bigint("keyword_id", { mode: "number", unsigned: true })
+    tagId: bigint("tag_id", { mode: "number", unsigned: true })
       .notNull()
-      .references(() => keywords.id),
+      .references(() => tags.id),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.promptId, t.keywordId] }),
+    pk: primaryKey({ columns: [t.promptId, t.tagId] }),
   }),
 );
 
-export const promptsToKeywordsRelations = relations(
-  promptsToKeywords,
-  ({ one }) => ({
-    keyword: one(keywords, {
-      fields: [promptsToKeywords.keywordId],
-      references: [keywords.id],
-    }),
-    prompt: one(prompts, {
-      fields: [promptsToKeywords.promptId],
-      references: [prompts.id],
-    }),
+export const promptsToTagsRelations = relations(promptsToTags, ({ one }) => ({
+  tag: one(tags, {
+    fields: [promptsToTags.tagId],
+    references: [tags.id],
   }),
-);
+  prompt: one(prompts, {
+    fields: [promptsToTags.promptId],
+    references: [prompts.id],
+  }),
+}));
 
-export const imagesToKeywords = mysqlTable(
-  "images_to_keywords",
+export const imagesToTags = mysqlTable(
+  "images_to_tags",
   {
     imageId: bigint("image_id", { mode: "number", unsigned: true })
       .notNull()
       .references(() => images.id),
-    keywordId: bigint("keyword_id", { mode: "number", unsigned: true })
+    tagId: bigint("tag_id", { mode: "number", unsigned: true })
       .notNull()
-      .references(() => keywords.id),
+      .references(() => tags.id),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.imageId, t.keywordId] }),
+    pk: primaryKey({ columns: [t.imageId, t.tagId] }),
   }),
 );
 
-export const imagesToKeywordsRelations = relations(
-  imagesToKeywords,
-  ({ one }) => ({
-    keyword: one(keywords, {
-      fields: [imagesToKeywords.keywordId],
-      references: [keywords.id],
-    }),
-    image: one(images, {
-      fields: [imagesToKeywords.imageId],
-      references: [images.id],
-    }),
+export const imagesToTagsRelations = relations(imagesToTags, ({ one }) => ({
+  tag: one(tags, {
+    fields: [imagesToTags.tagId],
+    references: [tags.id],
   }),
-);
+  image: one(images, {
+    fields: [imagesToTags.imageId],
+    references: [images.id],
+  }),
+}));
+
+export const wikiPages = mysqlTable("wiki_pages", {
+  id: serial("id").primaryKey(),
+  title: varchar("name", { length: 255 }).notNull(),
+  body: text("text").notNull(),
+  otherNames: json("other_names"),
+  isDeleted: boolean("is_deleted").default(false),
+  locked: boolean("locked").default(false),
+  createdAt: date("created_at"),
+  updatedAt: date("updated_at"),
+});
