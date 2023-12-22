@@ -1,7 +1,7 @@
 {
   "version": "5",
   "dialect": "mysql",
-  "id": "216b2dcc-a053-4372-ae92-f461d3208df2",
+  "id": "b51cf33d-7d43-4bc4-a3e7-342829515c9c",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "tables": {
     "categories": {
@@ -200,6 +200,13 @@
             "name"
           ],
           "isUnique": true
+        },
+        "is_negative_idx": {
+          "name": "is_negative_idx",
+          "columns": [
+            "is_negative"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {},
@@ -406,6 +413,13 @@
             "name"
           ],
           "isUnique": true
+        },
+        "category_idx": {
+          "name": "category_idx",
+          "columns": [
+            "category"
+          ],
+          "isUnique": false
         }
       },
       "foreignKeys": {},

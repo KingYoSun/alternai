@@ -11,6 +11,7 @@ import {
   json,
   int,
   date,
+  index,
 } from "drizzle-orm/mysql-core";
 import { relations } from "drizzle-orm";
 
@@ -88,6 +89,7 @@ export const tags = mysqlTable(
   },
   (tags) => ({
     nameIndex: uniqueIndex("name_idx").on(tags.name),
+    categoryIndex: index("category_idx").on(tags.category),
   }),
 );
 
@@ -130,6 +132,7 @@ export const prompts = mysqlTable(
   },
   (prompts) => ({
     nameIndex: uniqueIndex("name_idx").on(prompts.name),
+    isNegativeIdx: index("is_negative_idx").on(prompts.isNegative),
   }),
 );
 

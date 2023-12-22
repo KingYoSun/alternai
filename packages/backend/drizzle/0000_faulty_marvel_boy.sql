@@ -76,6 +76,8 @@ CREATE TABLE `wiki_pages` (
 	CONSTRAINT `wiki_pages_id` PRIMARY KEY(`id`)
 );
 --> statement-breakpoint
+CREATE INDEX `is_negative_idx` ON `prompts` (`is_negative`);--> statement-breakpoint
+CREATE INDEX `category_idx` ON `tags` (`category`);--> statement-breakpoint
 ALTER TABLE `images_to_tags` ADD CONSTRAINT `images_to_tags_image_id_images_id_fk` FOREIGN KEY (`image_id`) REFERENCES `images`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `images_to_tags` ADD CONSTRAINT `images_to_tags_tag_id_tags_id_fk` FOREIGN KEY (`tag_id`) REFERENCES `tags`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE `prompts_to_tags` ADD CONSTRAINT `prompts_to_tags_prompt_id_prompts_id_fk` FOREIGN KEY (`prompt_id`) REFERENCES `prompts`(`id`) ON DELETE no action ON UPDATE no action;--> statement-breakpoint
