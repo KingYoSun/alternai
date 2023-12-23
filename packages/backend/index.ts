@@ -17,6 +17,7 @@ import { AiGenerateImageRequestSchema } from "shared/types/NovelAiApi/GenImage.t
 import { type SaveOptions } from "shared/types/Api.ts";
 import MySQLCli from "./client/mysql.ts";
 import DanbTags from "./api/danbooru/tags.ts";
+import DanbWikiPages from "./api/danbooru/wiki_pages.ts";
 import schedule from "node-schedule";
 
 const dataSchema = (schema): any =>
@@ -172,6 +173,17 @@ schedule.scheduleJob("0 * * * *", async function () {
     const res = await DanbTags(redis, mysql, true, 4);
     if (res.status !== 200) throw new Error(res.message);
     console.log("DanbTags finished");
+  } catch (e) {
+    console.log(e);
+  }
+});
+
+schedule.scheduleJob("30 * * * *", async function () {
+  console.log("DanbWikiPages Start");
+  try {
+    const res = await DanbWikiPages(redis, mysql, true, 4);
+    if (res.status !== 200) throw new Error(res.message);
+    console.log("DanbWikiPages finished");
   } catch (e) {
     console.log(e);
   }

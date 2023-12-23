@@ -192,7 +192,7 @@ export const imagesToTagsRelations = relations(imagesToTags, ({ one }) => ({
 
 export const wikiPages = mysqlTable("wiki_pages", {
   id: serial("id").primaryKey(),
-  title: varchar("name", { length: 255 }).notNull(),
+  title: varchar("title", { length: 255 }).notNull(),
   body: text("text").notNull(),
   otherNames: json("other_names"),
   isDeleted: boolean("is_deleted").default(false),

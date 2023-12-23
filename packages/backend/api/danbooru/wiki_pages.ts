@@ -1,45 +1,46 @@
-import { tags } from "../../db/schema/images.ts";
+import { wikiPages } from "../../db/schema/images.ts";
 import { sql, type InferInsertModel, desc } from "drizzle-orm";
 import type RedisCli from "../../client/redis.ts";
 import type MySQLCli from "../../client/mysql.ts";
 import { type ApiResponseBody } from "shared/types/Api.ts";
 
-type Tag = InferInsertModel<typeof tags>;
+type WikiPage = InferInsertModel<typeof wikiPages>;
 
-const REDIS_KEY = "banb:tags";
+const REDIS_KEY = "banb:wikiPages";
 
 const credential = Buffer.from(
   `${process.env.DANBOORU_USERNAME}:${process.env.DANBOORU_APIKEY}`,
 ).toString("base64");
 
-async function fetchBooru(page: number): Promise<Tag[]> {
-  const query = `limit=200&page=${String(page)}`;
-  const res = await fetch(`https://danbooru.donmai.us/tags.json?${query}`, {
-    headers: {
-      "Content-Type": "applicatio/x-www-form-urlencoded",
-      Authorization: `Basic ${credential}`,
+async function fetchBooru(page: number): Promise<WikiPage[]> {
+  const query = `search[is_deleted]=false&limit=50&page=${String(page)}`;
+  const res = await fetch(
+    `https://danbooru.donmai.us/wiki_pages.json?${query}`,
+    {
+      headers: {
+        "Content-Type": "applicatio/x-www-form-urlencoded",
+        Authorization: `Basic ${credential}`,
+      },
     },
-  });
+  );
 
   const body = await res.json();
 
   if (res.status !== 200) throw new Error(JSON.stringify(body));
-  const resTags: Tag[] = body
-    .filter((t) => t.name.length < 255)
+  const resWikiPages: WikiPage[] = body
+    .filter((t) => t.title.length < 255)
     .map((t) => {
-      t.category = tags.category.enumValues[t.category as number];
       t.createdAt = new Date(t.created_at);
       t.updatedAt = new Date(t.updated_at);
-      t.postCount = Number(t.post_count);
-      t.isDeprecated = t.is_deprecated;
-      t.isLocked = t.is_locked;
+      t.otherNames = t.other_names;
+      t.isDeleted = t.is_deleted;
 
-      return t as Tag;
+      return t as WikiPage;
     });
-  return resTags;
+  return resWikiPages;
 }
 
-export default async function DanbTags(
+export default async function DanbWikiPages(
   redis: RedisCli,
   mysql: MySQLCli,
   resetPage: boolean,
@@ -57,12 +58,13 @@ export default async function DanbTags(
       }
     }
 
-    const lastUpdatedTag: Tag[] = await mysql.client
+    const lastUpdatedWikiPage: WikiPage[] = await mysql.client
       .select()
-      .from(tags)
-      .orderBy(desc(tags.updatedAt))
+      .from(wikiPages)
+      .orderBy(desc(wikiPages.updatedAt))
       .limit(1);
-    const lastUpdatedAt = lastUpdatedTag[0].updatedAt;
+    const lastUpdatedAt = lastUpdatedWikiPage[0].updatedAt;
+
     const startTime: number = new Date().getTime();
     let timeDiff: number = 0;
 
@@ -70,28 +72,32 @@ export default async function DanbTags(
       timeDiff / (60 * 1000) <
       execMinutes // minute単位
     ) {
-      const resTags: Tag[] = await fetchBooru(page).catch((e) => {
+      const resWikiPages: WikiPage[] = await fetchBooru(page).catch((e) => {
         throw new Error(e);
       });
 
+      if (resWikiPages.length === 0) {
+        console.log("Empty response!");
+        page = page + 1;
+        await redis.set({ key: `${REDIS_KEY}:lastPage`, value: String(page) });
+        break;
+      }
       await mysql.client
-        .insert(tags)
-        .values(resTags)
+        .insert(wikiPages)
+        .values(resWikiPages)
         .onDuplicateKeyUpdate({
           set: {
-            postCount: sql`VALUES(post_count)`,
-            isLocked: sql`VALUES(is_locked)`,
-            isDeprecated: sql`VALUES(is_deprecated)`,
-            createdAt: sql`VALUES(created_at)`,
+            isDeleted: sql`VALUES(is_deleted)`,
+            otherNames: sql`VALUES(other_names)`,
             updatedAt: sql`VALUES(updated_at)`,
           },
         });
 
-      const lastTag = resTags[resTags.length - 1];
+      const lastWikiPage = resWikiPages[resWikiPages.length - 1];
 
       if (
         (lastUpdatedAt?.getTime() ?? 0) -
-          (lastTag.updatedAt?.getTime() ?? new Date().getTime()) >=
+          (lastWikiPage.updatedAt?.getTime() ?? new Date().getTime()) >=
         0
       ) {
         await redis.set({ key: `${REDIS_KEY}:lastPage`, value: "1" });
@@ -101,6 +107,10 @@ export default async function DanbTags(
         await redis.set({ key: `${REDIS_KEY}:lastPage`, value: String(page) });
         timeDiff = new Date().getTime() - startTime;
       }
+
+      page = page + 1;
+      await redis.set({ key: `${REDIS_KEY}:lastPage`, value: String(page) });
+      timeDiff = new Date().getTime() - startTime;
     }
 
     console.log(`finished Page: ${page}`);
@@ -109,7 +119,7 @@ export default async function DanbTags(
       message: "finished!",
     };
   } catch (e) {
-    console.log("index tags failed!" + e);
+    console.log("index wikiPages failed!" + e);
     return {
       status: 500,
       message: JSON.stringify(e),
