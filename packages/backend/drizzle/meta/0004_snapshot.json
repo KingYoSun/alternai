@@ -1,0 +1,647 @@
+{
+  "version": "5",
+  "dialect": "mysql",
+  "id": "3d52d2e6-5bc9-4550-b596-e52feedcf484",
+  "prevId": "ab663926-5381-4c84-a11a-7ed7224d7cee",
+  "tables": {
+    "categories": {
+      "name": "categories",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "categories_id": {
+          "name": "categories_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "images": {
+      "name": "images",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "storage": {
+          "name": "storage",
+          "type": "enum('local','nextcloud')",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "path": {
+          "name": "path",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "storage_path_idx": {
+          "name": "storage_path_idx",
+          "columns": [
+            "storage",
+            "path"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "images_id": {
+          "name": "images_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "images_to_tags": {
+      "name": "images_to_tags",
+      "columns": {
+        "image_id": {
+          "name": "image_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "images_to_tags_image_id_images_id_fk": {
+          "name": "images_to_tags_image_id_images_id_fk",
+          "tableFrom": "images_to_tags",
+          "tableTo": "images",
+          "columnsFrom": [
+            "image_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "images_to_tags_tag_id_tags_id_fk": {
+          "name": "images_to_tags_tag_id_tags_id_fk",
+          "tableFrom": "images_to_tags",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "images_to_tags_image_id_tag_id_pk": {
+          "name": "images_to_tags_image_id_tag_id_pk",
+          "columns": [
+            "image_id",
+            "tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "prompts": {
+      "name": "prompts",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is_negative": {
+          "name": "is_negative",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        }
+      },
+      "indexes": {
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": true
+        },
+        "is_negative_idx": {
+          "name": "is_negative_idx",
+          "columns": [
+            "is_negative"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "prompts_id": {
+          "name": "prompts_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "prompts_to_tags": {
+      "name": "prompts_to_tags",
+      "columns": {
+        "prompt_id": {
+          "name": "prompt_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tag_id": {
+          "name": "tag_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "prompts_to_tags_prompt_id_prompts_id_fk": {
+          "name": "prompts_to_tags_prompt_id_prompts_id_fk",
+          "tableFrom": "prompts_to_tags",
+          "tableTo": "prompts",
+          "columnsFrom": [
+            "prompt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "prompts_to_tags_tag_id_tags_id_fk": {
+          "name": "prompts_to_tags_tag_id_tags_id_fk",
+          "tableFrom": "prompts_to_tags",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "prompts_to_tags_prompt_id_tag_id_pk": {
+          "name": "prompts_to_tags_prompt_id_tag_id_pk",
+          "columns": [
+            "prompt_id",
+            "tag_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "tag_groups": {
+      "name": "tag_groups",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category_id": {
+          "name": "category_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": true
+        }
+      },
+      "foreignKeys": {
+        "tag_groups_category_id_categories_id_fk": {
+          "name": "tag_groups_category_id_categories_id_fk",
+          "tableFrom": "tag_groups",
+          "tableTo": "categories",
+          "columnsFrom": [
+            "category_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "tag_groups_id": {
+          "name": "tag_groups_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "tags": {
+      "name": "tags",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "category": {
+          "name": "category",
+          "type": "enum('General','Artist','Copyright','Character','Meta')",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "post_count": {
+          "name": "post_count",
+          "type": "int",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_locked": {
+          "name": "is_locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        },
+        "is_deprecated": {
+          "name": "is_deprecated",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        },
+        "words": {
+          "name": "words",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {
+        "name_idx": {
+          "name": "name_idx",
+          "columns": [
+            "name"
+          ],
+          "isUnique": true
+        },
+        "category_idx": {
+          "name": "category_idx",
+          "columns": [
+            "category"
+          ],
+          "isUnique": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "columns": [
+            "updated_at"
+          ],
+          "isUnique": false
+        },
+        "post_count": {
+          "name": "post_count",
+          "columns": [
+            "post_count"
+          ],
+          "isUnique": false
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "tags_id": {
+          "name": "tags_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "tags_to_tag_groups": {
+      "name": "tags_to_tag_groups",
+      "columns": {
+        "tag_id": {
+          "name": "tag_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "tag_group_id": {
+          "name": "tag_group_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tags_to_tag_groups_tag_id_tags_id_fk": {
+          "name": "tags_to_tag_groups_tag_id_tags_id_fk",
+          "tableFrom": "tags_to_tag_groups",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tags_to_tag_groups_tag_group_id_tags_id_fk": {
+          "name": "tags_to_tag_groups_tag_group_id_tags_id_fk",
+          "tableFrom": "tags_to_tag_groups",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_group_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "tags_to_tag_groups_tag_id_tag_group_id_pk": {
+          "name": "tags_to_tag_groups_tag_id_tag_group_id_pk",
+          "columns": [
+            "tag_id",
+            "tag_group_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "tags_to_wiki_pages": {
+      "name": "tags_to_wiki_pages",
+      "columns": {
+        "tag_id": {
+          "name": "tag_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "wiki_page_id": {
+          "name": "wiki_page_id",
+          "type": "bigint unsigned",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "tags_to_wiki_pages_tag_id_tags_id_fk": {
+          "name": "tags_to_wiki_pages_tag_id_tags_id_fk",
+          "tableFrom": "tags_to_wiki_pages",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "tag_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "tags_to_wiki_pages_wiki_page_id_tags_id_fk": {
+          "name": "tags_to_wiki_pages_wiki_page_id_tags_id_fk",
+          "tableFrom": "tags_to_wiki_pages",
+          "tableTo": "tags",
+          "columnsFrom": [
+            "wiki_page_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "tags_to_wiki_pages_tag_id_wiki_page_id_pk": {
+          "name": "tags_to_wiki_pages_tag_id_wiki_page_id_pk",
+          "columns": [
+            "tag_id",
+            "wiki_page_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "wiki_pages": {
+      "name": "wiki_pages",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": true
+        },
+        "title": {
+          "name": "title",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "text": {
+          "name": "text",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "other_names": {
+          "name": "other_names",
+          "type": "json",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "is_deleted": {
+          "name": "is_deleted",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        },
+        "locked": {
+          "name": "locked",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false,
+          "default": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "updated_at": {
+          "name": "updated_at",
+          "type": "datetime",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "wiki_pages_id": {
+          "name": "wiki_pages_id",
+          "columns": [
+            "id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  }
+}

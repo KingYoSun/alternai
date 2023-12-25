@@ -200,3 +200,32 @@ export const wikiPages = mysqlTable("wiki_pages", {
   createdAt: datetime("created_at"),
   updatedAt: datetime("updated_at"),
 });
+
+export const tagsToWikiPages = mysqlTable(
+  "tags_to_wiki_pages",
+  {
+    tagId: bigint("tag_id", { mode: "number", unsigned: true })
+      .notNull()
+      .references(() => tags.id),
+    wikiPageId: bigint("wiki_page_id", { mode: "number", unsigned: true })
+      .notNull()
+      .references(() => tags.id),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.tagId, t.wikiPageId] }),
+  }),
+);
+
+export const tagsToWikiPagesRelations = relations(
+  tagsToWikiPages,
+  ({ one }) => ({
+    wikiPage: one(wikiPages, {
+      fields: [tagsToWikiPages.wikiPageId],
+      references: [wikiPages.id],
+    }),
+    tag: one(tags, {
+      fields: [tagsToWikiPages.tagId],
+      references: [tags.id],
+    }),
+  }),
+);
