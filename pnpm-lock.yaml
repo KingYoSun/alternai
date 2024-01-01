@@ -131,8 +131,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(@types/react-dom@18.2.18)(@types/react@18.2.45)(react-dom@18.2.0)(react@18.2.0)
       '@xenova/transformers':
-        specifier: ^2.11.0
-        version: 2.11.0
+        specifier: ^2.13.0
+        version: 2.13.0
       class-variance-authority:
         specifier: ^0.7.0
         version: 0.7.0
@@ -1212,6 +1212,11 @@ packages:
       react-hook-form: ^7.0.0
     dependencies:
       react-hook-form: 7.49.2(react@18.2.0)
+    dev: false
+
+  /@huggingface/jinja@0.1.2:
+    resolution: {integrity: sha512-x5mpbfJt1nKmVep5WNP5VjNsjWApWNj8pPYI+uYMkBWH9bWUJmQmHt2lbf0VCoQd54Oq3XuFEh/UyoVh7rPxmg==}
+    engines: {node: '>=18'}
     dev: false
 
   /@humanwhocodes/config-array@0.11.13:
@@ -2683,9 +2688,10 @@ packages:
       - '@swc/helpers'
     dev: true
 
-  /@xenova/transformers@2.11.0:
-    resolution: {integrity: sha512-i/oaTbVJI+pbkWiUZydmaGFlSh3167N+gimkIJBlHf150wQWffwGE9dPttLsS9cLlmty95Z1MkVQmibl/j7bSg==}
+  /@xenova/transformers@2.13.0:
+    resolution: {integrity: sha512-pKff4jg59n/B4ltdViIIDOZTZJbWeGduY62nkFYuLxnNBFEfVcBr5PBpKPKktDud3yy4+vRk8pZn1S1sSV+8KQ==}
     dependencies:
+      '@huggingface/jinja': 0.1.2
       onnxruntime-web: 1.14.0
       sharp: 0.32.6
     optionalDependencies:
